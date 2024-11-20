@@ -1,4 +1,6 @@
-export interface IUser extends Document {
+import { Document, Types } from "mongoose";
+
+export interface IUser extends Document<Types.ObjectId> {
   firstName: string;
   lastName: string;
   phone: string;

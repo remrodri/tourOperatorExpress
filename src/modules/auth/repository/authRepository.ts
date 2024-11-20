@@ -1,9 +1,11 @@
+import { IUser } from "../../model/user/IUser";
+import { UserModel } from "../../model/user/userModel";
 import { IAuthRepository } from "./IAuthRepository";
 
-export class AuthRepository implements IAuthRepository{
-  findByEmail(email: string):any {
-    console.log('email::: ', email);
+export class AuthRepository implements IAuthRepository {
+  async findByEmail(email: string): Promise<IUser | null> {
+    const user = await UserModel.findOne({ email })
+    return user;
     // throw new Error("Method not implemented.");
   }
-
 }

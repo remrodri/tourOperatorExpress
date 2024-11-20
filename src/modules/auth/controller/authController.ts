@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthService } from "../service/authService";
+import { ApiResponseBuilder } from "../../../utils/response/apiResponseBuilder";
+import { StatusCodes } from "http-status-codes";
 
 export class AuthController {
   private readonly authService: AuthService;
@@ -15,7 +17,14 @@ export class AuthController {
     try {
       // const loginData = req.body;
       // console.log("req.body::: ", loginData);
-      const response = this.authService.login(req.body)
+      const token = await this.authService.login(req.body);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setMessage("Usuario logeado satisfactoriamiente")
+        .setData({ token })
+        .build();
+      res.status(StatusCodes.OK).json(response);
+      // console.log('response::: ', response);
     } catch (error) {
       next(error);
     }
