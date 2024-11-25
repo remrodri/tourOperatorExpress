@@ -6,4 +6,5 @@ export interface loginResponseDto {
   email: string;
   firstLogin: boolean;
   role: string;
+  ci:string
 }
