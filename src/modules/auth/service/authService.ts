@@ -17,7 +17,6 @@ export class AuthService implements IAuthService {
 
   async login(loginData: { email: string; password: string }): Promise<any> {
     // console.log("loginData::: ", loginData);
-    try {
       const validData = LoginRequestDto.parse(loginData);
       if (!validData) {
         throw new HttpException(
@@ -59,11 +58,7 @@ export class AuthService implements IAuthService {
       // console.log('userDto::: ', userDto);
       const token = generateToken(userDto);
       return token;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        console.error("Errores de validacion: ", error.errors);
-      }
-    }
+    
   }
   // login(email: string, password: string): Promise<{ user: loginResponseDto; token: string; }> {
 }
