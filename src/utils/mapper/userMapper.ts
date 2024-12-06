@@ -1,4 +1,4 @@
-import { UserVo } from "../../modules/userManagement/vo/userVo";
+import { UserVo } from "../../modules/user/vo/userVo";
 
 export const userMapper = (user: any) => {
   return new UserVo(
@@ -6,8 +6,8 @@ export const userMapper = (user: any) => {
     user.firstName,
     user.lastName,
     user.phone,
-    user.email,
     user.ci,
+    user.email,
     user.firstLogin,
     user.role.toString()
   );
