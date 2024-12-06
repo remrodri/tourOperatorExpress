@@ -1,28 +1,29 @@
 import { NextFunction, Request, Response } from "express";
-import { IUserManagementService } from "../service/IUserManagementService";
 import { ApiResponseBuilder } from "../../../utils/response/apiResponseBuilder";
+import { STATUS_CODES } from "http";
 import { StatusCodes } from "http-status-codes";
+import { IRoleService } from "../service/IRoleService";
 
-export class UserManagementController {
-  private readonly userManagementService: IUserManagementService;
+export class RoleController {
+  private readonly roleService: IRoleService;
 
-  constructor(userManagementService: IUserManagementService) {
-    this.userManagementService = userManagementService;
+  constructor(roleService: IRoleService) {
+    this.roleService = roleService;
   }
 
-  async getAllUsers(req: Request, res: Response, next: NextFunction) {
+  async getAllRoles(req: Request, res: Response, next: NextFunction) {
     try {
-      const users = await this.userManagementService.getAllUsers();
+      const roles = await this.roleService.getAllRoles();
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
-        .setMessage("Usuarios encontrados satisfactoriamente")
-        .setData(users)
+        .setMessage("Roles encontrados satisfactoriamente")
+        .setData(roles)
         .build();
       res.status(StatusCodes.OK).json(response);
     } catch (error) {
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.INTERNAL_SERVER_ERROR)
-        .setMessage("Error al obtener usuarios")
+        .setMessage("Error al obtener los roles")
         .build();
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(response);
       return next(error);
