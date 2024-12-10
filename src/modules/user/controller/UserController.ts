@@ -3,6 +3,7 @@ import { ApiResponseBuilder } from "../../../utils/response/apiResponseBuilder";
 import { StatusCodes } from "http-status-codes";
 import { CreateUserDto } from "../dto/createUserDto";
 import { IUserService } from "../service/IUserService";
+import { UpdateUserDto } from "../dto/updateUserDto";
 
 export class UserController {
   private readonly userService: IUserService;
@@ -46,6 +47,27 @@ export class UserController {
         .setData(user)
         .build();
       res.status(StatusCodes.CREATED).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateUser(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    const updateUserDto = UpdateUserDto.parse(req.body);
+    // console.log('updateUserDto::: ', updateUserDto);
+    // console.log('req.body::: ', req.body);
+    try {
+      const user = await this.userService.updateUser(updateUserDto);
+      // console.log('user::: ', user);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setData(user)
+        .build();
+      res.status(StatusCodes.OK).json(response);
     } catch (error) {
       next(error);
     }

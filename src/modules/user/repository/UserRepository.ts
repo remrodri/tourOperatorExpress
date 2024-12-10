@@ -9,19 +9,37 @@ import { IUserRepository } from "./IUserRepository";
 import bcrypt from "bcryptjs";
 
 export class UserRepository implements IUserRepository {
+  async updateUserData(userData: UpdateUserDto): Promise<IUser | null> {
+    // console.log('userData::: ', userData);
+    const user = await UserModel.findByIdAndUpdate(
+      userData.userId,
+      {
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        ci: userData.ci,
+        phone: userData.phone,
+        role: userData.role,
+      },
+      { new: true }
+    );
+    // console.log("user::: ", user);
+    return user;
+    // throw new Error("Method not implemented.");
+  }
   async registerUserQuestionsAnswers(
     userId: string,
     userQuestionsAnswersId: string
-  ): Promise<IUser|null> {
-    console.log('userId::: ', userId);
-    console.log('userQuestionsAnswersId::: ', userQuestionsAnswersId);
+  ): Promise<IUser | null> {
+    console.log("userId::: ", userId);
+    console.log("userQuestionsAnswersId::: ", userQuestionsAnswersId);
     const userUpdated = await UserModel.findByIdAndUpdate(userId, {
       questionsAnswers: userQuestionsAnswersId,
     });
     return userUpdated;
     // throw new Error("Method not implemented.");
   }
-  async updateUser(
+  async updateUserQuestionsAnswers(
     userId: string,
     updateUserDto: UpdateUserDto
   ): Promise<IUser | null> {

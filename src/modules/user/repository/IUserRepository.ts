@@ -7,9 +7,13 @@ export interface IUserRepository {
   getAll(): Promise<IUser[]>;
   findByEmail(email: string): Promise<IUser | null>;
   createUser(createUser: CreateUserDto): Promise<IUser>;
-  updateUser(
+  updateUserQuestionsAnswers(
     userId: string,
     updateUserDto: UpdateUserDto
   ): Promise<IUser | null>;
-  registerUserQuestionsAnswers(userId:string,userQuestionsAnswersId: string): Promise<IUser|null>;
+  registerUserQuestionsAnswers(
+    userId: string,
+    userQuestionsAnswersId: string
+  ): Promise<IUser | null>;
+  updateUserData(userData: UpdateUserDto): Promise<IUser|null>;
 }

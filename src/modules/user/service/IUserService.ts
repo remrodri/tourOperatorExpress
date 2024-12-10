@@ -8,7 +8,6 @@ export interface IUserService {
   getAllUsers(): Promise<UserVo[]>;
   createUser(createUserDto: CreateUserDto): Promise<UserVo>;
   updateUser(
-    userId: string,
     updateUserDto: UpdateUserDto
   ): Promise<UserVo | null>;
   // registerUserQuestionsAnswers(userId:string,userQuestionsAnswersId: string): Promise<UserVo|null>;
