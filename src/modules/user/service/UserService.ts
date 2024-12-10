@@ -33,11 +33,36 @@ export class UserService implements IUserService {
   //   const userUpdated = this.userRepository.registerUserQuestionsAnswers()
   //   throw new Error("Method not implemented.");
   // }
-  async updateUser(
-    userId: string,
-    updateUserDto: UpdateUserDto
-  ): Promise<UserVo | null> {
-    throw new Error("Method not implemented.");
+  async updateUser(updateUserDto: UpdateUserDto): Promise<UserVo | null> {
+    // console.log('updateUserDto::: ', updateUserDto);
+    const userFound = await this.userRepository.findByEmail(
+      updateUserDto.email
+    );
+    if (!userFound) {
+      throw new HttpException(StatusCodes.NOT_FOUND, "Usuario no encontrado");
+    }
+    const userUpdated = await this.userRepository.updateUserData(
+      updateUserDto
+    );
+    // console.log('userUpdated::: ', userUpdated);
+    if (!userUpdated) {
+      throw new HttpException(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Error al actualizar el usuario"
+      );
+    }
+    const userVo = new UserVo(
+      userUpdated._id.toString(),
+      userUpdated.firstName,
+      userUpdated.lastName,
+      userUpdated.email,
+      userUpdated.ci,
+      userUpdated.phone,
+      userUpdated.firstLogin,
+      userUpdated.role
+    );
+    return userVo;
+    // throw new Error("Method not implemented.");
   }
 
   async createUser(createUserDto: CreateUserDto): Promise<UserVo> {
@@ -65,7 +90,7 @@ export class UserService implements IUserService {
     if (!userUpdated) {
       throw new HttpException(
         StatusCodes.BAD_REQUEST,
-        "No se registraron las pregutnas de seguridad"
+        "No se registraron las preguntas de seguridad"
       );
     }
     const userVo = new UserVo(

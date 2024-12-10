@@ -42,4 +42,8 @@ userRouter.get("/users", authMiddleware, (req, res, next) =>
 userRouter.post("/users", authMiddleware, (req, res, next) =>
   userController.createUser(req, res, next)
 );
+
+userRouter.patch("/users", authMiddleware, (req, res, next) =>
+  userController.updateUser(req, res, next)
+);
 export default userRouter;
