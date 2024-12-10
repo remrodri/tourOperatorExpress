@@ -46,4 +46,8 @@ userRouter.post("/users", authMiddleware, (req, res, next) =>
 userRouter.patch("/users", authMiddleware, (req, res, next) =>
   userController.updateUser(req, res, next)
 );
+
+userRouter.patch("/users/delete-user", authMiddleware, (req, res, next) =>
+  userController.softDeleteUser(req, res, next)
+);
 export default userRouter;

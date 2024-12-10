@@ -14,6 +14,7 @@ import { IUserRepository } from "../repository/IUserRepository";
 import { UserVo } from "../vo/userVo";
 import { IUserService } from "./IUserService";
 import bcrypt from "bcryptjs";
+import { DeleteUserDto } from "../dto/deleteUserDto";
 
 export class UserService implements IUserService {
   private readonly userRepository: IUserRepository;
@@ -29,10 +30,27 @@ export class UserService implements IUserService {
     this.userQuestionsAnswersService = userQuestionsAnswersService;
     // this.recoveryPasswordService = recoveryPasswordService;
   }
-  // registerUserQuestionsAnswers(userId: string, userQuestionsAnswersId: string): Promise<UserVo | null> {
-  //   const userUpdated = this.userRepository.registerUserQuestionsAnswers()
-  //   throw new Error("Method not implemented.");
-  // }
+  async softDeleteUser(deleteUserDto: DeleteUserDto): Promise<UserVo | null> {
+    const userFound = await this.userRepository.findById(deleteUserDto.userId);
+    // console.log('userFound::: ', userFound);
+    if (!userFound) {
+      throw new HttpException(StatusCodes.NOT_FOUND, "Usuario no encontrado");
+    }
+    const userSoftDeleted = await this.userRepository.softDeleteUser(
+      deleteUserDto
+    );
+    if (!userSoftDeleted) {
+      throw new HttpException(
+        StatusCodes.BAD_REQUEST,
+        "El usuario no ha sido eliminado"
+      );
+    }
+    // console.log('userSoftDeleted::: ', userSoftDeleted);
+    const userVo = userMapper(userSoftDeleted);
+    return userVo;
+    // throw new Error("Method not implemented.");
+  }
+
   async updateUser(updateUserDto: UpdateUserDto): Promise<UserVo | null> {
     // console.log('updateUserDto::: ', updateUserDto);
     const userFound = await this.userRepository.findByEmail(
@@ -41,9 +59,7 @@ export class UserService implements IUserService {
     if (!userFound) {
       throw new HttpException(StatusCodes.NOT_FOUND, "Usuario no encontrado");
     }
-    const userUpdated = await this.userRepository.updateUserData(
-      updateUserDto
-    );
+    const userUpdated = await this.userRepository.updateUserData(updateUserDto);
     // console.log('userUpdated::: ', userUpdated);
     if (!userUpdated) {
       throw new HttpException(
