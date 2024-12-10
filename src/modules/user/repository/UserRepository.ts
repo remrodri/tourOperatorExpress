@@ -4,11 +4,27 @@ import { UserModel } from "../../model/user/userModel";
 // import { IRecoveryPasswordRepository } from "../../recoveryPassword/repository/IRecoveryPasswordRepository";
 // import { IRecoveryPasswordService } from "../../recoveryPassword/service/IRecoveryPasswordService";
 import { CreateUserDto } from "../dto/createUserDto";
+import { DeleteUserDto } from "../dto/deleteUserDto";
 import { UpdateUserDto } from "../dto/updateUserDto";
 import { IUserRepository } from "./IUserRepository";
 import bcrypt from "bcryptjs";
 
 export class UserRepository implements IUserRepository {
+  async softDeleteUser(deleteUserDto: DeleteUserDto): Promise<IUser | null> {
+    return await UserModel.findByIdAndUpdate(
+      deleteUserDto.userId,
+      {
+        deleted: true,
+      },
+      { new: true }
+    );
+    // throw new Error("Method not implemented.");
+  }
+  async findById(userId: string): Promise<IUser | null> {
+    // console.log("userId de repo::: ", userId);
+    return await UserModel.findById(userId);
+    // throw new Error("Method not implemented.");
+  }
   async updateUserData(userData: UpdateUserDto): Promise<IUser | null> {
     // console.log('userData::: ', userData);
     const user = await UserModel.findByIdAndUpdate(

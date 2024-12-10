@@ -1,6 +1,7 @@
 import { CreateUserMapper } from "../../../utils/mapper/createUserMapper";
 import { IUser } from "../../model/user/IUser";
 import { CreateUserDto } from "../dto/createUserDto";
+import { DeleteUserDto } from "../dto/deleteUserDto";
 import { UpdateUserDto } from "../dto/updateUserDto";
 
 export interface IUserRepository {
@@ -15,5 +16,7 @@ export interface IUserRepository {
     userId: string,
     userQuestionsAnswersId: string
   ): Promise<IUser | null>;
-  updateUserData(userData: UpdateUserDto): Promise<IUser|null>;
+  updateUserData(userData: UpdateUserDto): Promise<IUser | null>;
+  findById(userId: string): Promise<IUser | null>;
+  softDeleteUser(deleteUserDto: DeleteUserDto): Promise<IUser | null>;
 }

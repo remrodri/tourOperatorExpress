@@ -4,12 +4,34 @@ import { StatusCodes } from "http-status-codes";
 import { CreateUserDto } from "../dto/createUserDto";
 import { IUserService } from "../service/IUserService";
 import { UpdateUserDto } from "../dto/updateUserDto";
+import { DeleteUserDto } from "../dto/deleteUserDto";
 
 export class UserController {
   private readonly userService: IUserService;
 
   constructor(userService: IUserService) {
     this.userService = userService;
+  }
+
+  async softDeleteUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const deleteUserDto = DeleteUserDto.parse(req.body);
+      // console.log("userId::: ", userId);
+      const userDeleted = await this.userService.softDeleteUser(deleteUserDto);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setMessage("Usuario eliminado exitosamente")
+        .setData(userDeleted)
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.INTERNAL_SERVER_ERROR)
+        .setMessage("Error al eliminar el usuario")
+        .build();
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(response);
+      return next(error);
+    }
   }
 
   async getAllUsers(req: Request, res: Response, next: NextFunction) {
