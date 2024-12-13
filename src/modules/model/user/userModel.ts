@@ -1,6 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 import { IUser } from "./IUser";
-import bcrypt from "bcryptjs";
 
 const UserSchema: Schema = new Schema(
   {

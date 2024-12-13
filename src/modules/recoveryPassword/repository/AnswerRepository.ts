@@ -7,6 +7,5 @@ export class AnswerRepository implements IAnswerRepository {
     const emptyAnswer = new AnswerModel();
     const answer = (await emptyAnswer.save());
     return answer;
-    throw new Error("Method not implemented.");
   }
 }

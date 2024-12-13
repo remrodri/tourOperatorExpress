@@ -1,5 +1,4 @@
 import { model, Schema } from "mongoose";
-import { IUser } from "../../../model/user/IUser";
 import { IUserQuestionsAnswers } from "./IUserQuestionsAnswers";
 
 const userQuestionsAnswersSchema = new Schema(
