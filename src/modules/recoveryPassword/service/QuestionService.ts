@@ -1,5 +1,4 @@
 import { IQuestionRepository } from "../repository/IQuestionRepository";
-import { QuestionIdVo } from "../vo/questionIdVo";
 import { IQuestionService } from "./IQuestionService";
 
 export class QuestionService implements IQuestionService {

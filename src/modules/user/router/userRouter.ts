@@ -11,7 +11,7 @@ import { UserQuestionsAnswersService } from "../../recoveryPassword/service/User
 import { UserQuestionsAnswersRepository } from "../../recoveryPassword/repository/UserQuestionsAnswersRepository";
 import { AnswerRepository } from "../../recoveryPassword/repository/AnswerRepository";
 import { AnswerService } from "../../recoveryPassword/service/AnswerService";
-import { UserController } from "../controller/userController";
+import { UserController } from "../controller/UserController";
 
 const userRouter: Router = Router();
 // const recoveryPasswordRepository = new RecoveryPasswordRepository();

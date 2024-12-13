@@ -1,4 +1,3 @@
-import { CreateUserMapper } from "../../../utils/mapper/createUserMapper";
 import { IUser } from "../../model/user/IUser";
 import { CreateUserDto } from "../dto/createUserDto";
 import { DeleteUserDto } from "../dto/deleteUserDto";

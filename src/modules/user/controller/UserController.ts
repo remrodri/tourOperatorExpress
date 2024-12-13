@@ -30,7 +30,7 @@ export class UserController {
         .setMessage("Error al eliminar el usuario")
         .build();
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(response);
-      return next(error);
+      next(error);
     }
   }
 
@@ -49,7 +49,7 @@ export class UserController {
         .setMessage("Error al obtener usuarios")
         .build();
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(response);
-      return next(error);
+      next(error);
     }
   }
 

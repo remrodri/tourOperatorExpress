@@ -1,7 +1,5 @@
-import { CreateUserMapper } from "../../../utils/mapper/createUserMapper";
 import { IUser } from "../../model/user/IUser";
 import { UserModel } from "../../model/user/userModel";
-// import { IRecoveryPasswordRepository } from "../../recoveryPassword/repository/IRecoveryPasswordRepository";
 // import { IRecoveryPasswordService } from "../../recoveryPassword/service/IRecoveryPasswordService";
 import { CreateUserDto } from "../dto/createUserDto";
 import { DeleteUserDto } from "../dto/deleteUserDto";
