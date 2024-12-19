@@ -10,4 +10,5 @@ export interface IUser extends Document<Types.ObjectId> {
   deleted: boolean;
   firstLogin: boolean;
   role: string;
+  questionsAnswers:Types.ObjectId
 }

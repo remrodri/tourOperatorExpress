@@ -1,5 +1,5 @@
-import { IUserQuestionsAnswers } from "../model/userQuestionsAnswers/IUserQuestionsAnswers";
-import { UserQuestionsAnswersModel } from "../model/userQuestionsAnswers/userQuestionsAnswersModel";
+import { IUserQuestionsAnswers } from "../../model/recoveryPassword/userQuestionsAnswers/IUserQuestionsAnswers";
+import { UserQuestionsAnswersModel } from "../../model/recoveryPassword/userQuestionsAnswers/userQuestionsAnswersModel";
 import { IUserQuestionsAnswersRepository } from "./IUserQuestionsAnswersRepository";
 
 export class UserQuestionsAnswersRepository

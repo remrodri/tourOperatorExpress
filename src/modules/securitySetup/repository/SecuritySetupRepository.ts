@@ -1,10 +1,46 @@
+import { AnswerModel } from "../../model/recoveryPassword/answer/answerModel";
+import { IAnswer } from "../../model/recoveryPassword/answer/IAnswer";
+import { IUserQuestionsAnswers } from "../../model/recoveryPassword/userQuestionsAnswers/IUserQuestionsAnswers";
+import { UserQuestionsAnswersModel } from "../../model/recoveryPassword/userQuestionsAnswers/userQuestionsAnswersModel";
 import { IUser } from "../../model/user/IUser";
 import { UserModel } from "../../model/user/userModel";
+import { UpdateAnswersDto } from "../dto/updateAnswersDto";
 import { UpdatePasswordDto } from "../dto/updatePasswodDto";
+import { GetQuestionsDto } from "../dto/userIdDto";
 import { ISecuritySetupRepository } from "./ISecuritySetupRepository";
 import bcrypt from "bcryptjs";
 
 export class SecuritySetupRepository implements ISecuritySetupRepository {
+  async updateAnswers(
+    updateAnswersDto: UpdateAnswersDto
+  ): Promise<any[]> {
+    const updatedAnswers = await Promise.all(
+      updateAnswersDto.map(
+        async (answer) =>
+          await AnswerModel.findByIdAndUpdate(
+            answer.answerId,
+            {
+              answerText: answer.answerText,
+            },
+            { new: true }
+          )
+        )
+      );
+      // console.log('updatedAnswers::: ', updatedAnswers);
+    return updatedAnswers;
+    // throw new Error("Method not implemented.");
+  }
+
+  async getSecurityQuestions(
+    questionsAnswersId: string
+  ): Promise<IUserQuestionsAnswers | null> {
+    const userQuestionsAnswers = await UserQuestionsAnswersModel.findById(
+      questionsAnswersId
+    ).populate("questionsAnswers.question");
+    // console.log("userQuestionsAnswers::: ", userQuestionsAnswers);
+    return userQuestionsAnswers;
+    // throw new Error("Method not implemented.");
+  }
   async findUserById(userId: string): Promise<IUser | null> {
     return await UserModel.findById(userId);
   }
