@@ -98,6 +98,7 @@ export class UserService implements IUserService {
       await this.userQuestionsAnswersService.createUserQuestionsAnswers(
         newUser._id.toString()
       );
+    console.log("userQuestionsAnswersId::: ", userQuestionsAnswersId);
     // console.log("userQuestionsAnswersId::: ", userQuestionsAnswersId);
     const userUpdated = await this.userRepository.registerUserQuestionsAnswers(
       newUser._id.toString(),

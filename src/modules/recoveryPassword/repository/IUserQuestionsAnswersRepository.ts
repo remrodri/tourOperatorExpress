@@ -1,4 +1,4 @@
-import { IUserQuestionsAnswers } from "../model/userQuestionsAnswers/IUserQuestionsAnswers";
+import { IUserQuestionsAnswers } from "../../model/recoveryPassword/userQuestionsAnswers/IUserQuestionsAnswers";
 
 export interface IUserQuestionsAnswersRepository {
   createUserQuestionsAnswers(

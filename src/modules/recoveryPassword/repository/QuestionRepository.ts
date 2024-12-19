@@ -1,4 +1,4 @@
-import { QuestionsModel } from "../model/question/questionModel";
+import { QuestionsModel } from "../../model/recoveryPassword/question/questionModel";
 import { IQuestionRepository } from "./IQuestionRepository";
 
 export class QuestionRepository implements IQuestionRepository {

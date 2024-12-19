@@ -1,4 +1,4 @@
-import { IAnswer } from "../model/answer/IAnswer";
+import { IAnswer } from "../../model/recoveryPassword/answer/IAnswer";
 
 export interface IAnswerRepository {
   createEmptyAnswer(): Promise<IAnswer>;
