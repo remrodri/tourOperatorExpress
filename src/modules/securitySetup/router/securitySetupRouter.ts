@@ -3,11 +3,37 @@ import { SecuritySetupRepository } from "../repository/SecuritySetupRepository";
 import { SecuritySetupService } from "../service/SecurityServiceService";
 import { SecuritySetupController } from "../controller/SecuritySetupController";
 import { authMiddleware } from "../../../middleware/authMiddleware";
+import { UserRepository } from "../../user/repository/UserRepository";
+import { UserService } from "../../user/service/UserService";
+import { UserQuestionsAnswersService } from "../../recoveryPassword/service/UserQuestionsAnswersService";
+import { UserQuestionsAnswersRepository } from "../../recoveryPassword/repository/UserQuestionsAnswersRepository";
+import { QuestionService } from "../../recoveryPassword/service/QuestionService";
+import { AnswerService } from "../../recoveryPassword/service/AnswerService";
+import { QuestionRepository } from "../../recoveryPassword/repository/QuestionRepository";
+import { AnswerRepository } from "../../recoveryPassword/repository/AnswerRepository";
 
 const securitySetupRouter: Router = Router();
 
 const securitySetupRepository = new SecuritySetupRepository();
-const securitySetupService = new SecuritySetupService(securitySetupRepository);
+const userRepository = new UserRepository();
+const userQuestionsAnswersRepository = new UserQuestionsAnswersRepository();
+const questionRepository = new QuestionRepository();
+const answerRepository = new AnswerRepository();
+const answerService = new AnswerService(answerRepository);
+const questionsService = new QuestionService(questionRepository);
+const userQuestionsAnswersService = new UserQuestionsAnswersService(
+  userQuestionsAnswersRepository,
+  questionsService,
+  answerService
+);
+const userService = new UserService(
+  userRepository,
+  userQuestionsAnswersService
+);
+const securitySetupService = new SecuritySetupService(
+  securitySetupRepository,
+  userService
+);
 const securitySetupController = new SecuritySetupController(
   securitySetupService
 );

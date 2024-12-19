@@ -9,6 +9,7 @@ export interface IUserService {
   getAllUsers(): Promise<UserVo[]>;
   createUser(createUserDto: CreateUserDto): Promise<UserVo>;
   updateUser(updateUserDto: UpdateUserDto): Promise<UserVo | null>;
-  softDeleteUser(deleteUserDto: DeleteUserDto): Promise<UserVo|null>;
+  softDeleteUser(deleteUserDto: DeleteUserDto): Promise<UserVo | null>;
+  updateFirstLogin(userId: string): Promise<IUser | null>;
   // registerUserQuestionsAnswers(userId:string,userQuestionsAnswersId: string): Promise<UserVo|null>;
 }

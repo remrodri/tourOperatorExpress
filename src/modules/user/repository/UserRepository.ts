@@ -8,6 +8,17 @@ import { IUserRepository } from "./IUserRepository";
 import bcrypt from "bcryptjs";
 
 export class UserRepository implements IUserRepository {
+  async updateFirstLogin(userId: string): Promise<IUser | null> {
+    const user = await UserModel.findByIdAndUpdate(
+      userId,
+      {
+        firstLogin: false,
+      },
+      { new: true }
+    );
+    return user;
+    // throw new Error("Method not implemented.");
+  }
   async softDeleteUser(deleteUserDto: DeleteUserDto): Promise<IUser | null> {
     return await UserModel.findByIdAndUpdate(
       deleteUserDto.userId,

@@ -30,6 +30,15 @@ export class UserService implements IUserService {
     this.userQuestionsAnswersService = userQuestionsAnswersService;
     // this.recoveryPasswordService = recoveryPasswordService;
   }
+  updateFirstLogin(userId: string): Promise<IUser | null> {
+    const userFound = this.userRepository.findById(userId);
+    if (!userFound) {
+      throw new HttpException(StatusCodes.NOT_FOUND, "User no encontrado");
+    }
+    const user = this.userRepository.updateFirstLogin(userId);
+    return user;
+    // throw new Error("Method not implemented.");
+  }
   async softDeleteUser(deleteUserDto: DeleteUserDto): Promise<UserVo | null> {
     const userFound = await this.userRepository.findById(deleteUserDto.userId);
     // console.log('userFound::: ', userFound);

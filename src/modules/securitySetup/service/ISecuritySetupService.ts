@@ -8,5 +8,5 @@ export interface ISecuritySetupService {
   getSecurityQuestions(
     getQuestionsDto: GetQuestionsDto
   ): Promise<SecurityQuestionsVo | null>;
-  updateSecurityAnswers(updateAnswersDto: UpdateAnswersDto): Promise<void>;
+  updateSecurityAnswers(updateAnswersDto: UpdateAnswersDto,userId:String): Promise<void>;
 }

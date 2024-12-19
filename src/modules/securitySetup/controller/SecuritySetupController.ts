@@ -15,12 +15,12 @@ export class SecuritySetupController {
 
   async updateSecurityAnswers(req: Request, res: Response, next: NextFunction) {
     try {
-      // console.log("req.body::: ", req.body.answers[0]);
+      // console.log("req.body::: ", req.body);
       const updateAnswersDto = UpdateAnswersDto.parse(req.body.answers);
       // console.log('dto::: ', dto);
 
       // const updatedAnswers =
-      await this.securitySetupService.updateSecurityAnswers(updateAnswersDto);
+      await this.securitySetupService.updateSecurityAnswers(updateAnswersDto,req.body.userId);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
         .setMessage("Respuestas de seguridad actualizadas exitosamente")

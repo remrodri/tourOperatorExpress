@@ -9,16 +9,24 @@ import { IUserQuestionsAnswers } from "../../model/recoveryPassword/userQuestion
 import { SecurityQuestionsVo } from "../vo/securityQuestionsVo";
 import { AnswerModel } from "../../model/recoveryPassword/answer/answerModel";
 import { UpdateAnswersDto } from "../dto/updateAnswersDto";
+import { IUserService } from "../../user/service/IUserService";
 
 export class SecuritySetupService implements ISecuritySetupService {
   private readonly securitySetupRepository: ISecuritySetupRepository;
+  private readonly userService: IUserService;
 
-  constructor(securitySetupRepository: ISecuritySetupRepository) {
+  constructor(
+    securitySetupRepository: ISecuritySetupRepository,
+    userService: IUserService
+  ) {
     this.securitySetupRepository = securitySetupRepository;
+    this.userService = userService;
   }
   async updateSecurityAnswers(
-    updateAnswersDto: UpdateAnswersDto
+    updateAnswersDto: UpdateAnswersDto,
+    userId: string
   ): Promise<void> {
+    console.log("userId::: ", userId);
     // console.log("answers::: ", answers);
     const updatedAnswers = await Promise.all(
       await this.securitySetupRepository.updateAnswers(updateAnswersDto)
@@ -30,6 +38,14 @@ export class SecuritySetupService implements ISecuritySetupService {
         "Las respuestas de seguridad no se actualizaron"
       );
     }
+    const userUpdated = this.userService.updateFirstLogin(userId);
+    if (!userUpdated) {
+      throw new HttpException(
+        StatusCodes.BAD_REQUEST,
+        "El usuario no se actualizó"
+      );
+    }
+    // const userUpdated =
 
     // throw new Error("Method not implemented.");
   }
