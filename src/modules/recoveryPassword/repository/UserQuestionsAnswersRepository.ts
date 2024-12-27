@@ -5,6 +5,17 @@ import { IUserQuestionsAnswersRepository } from "./IUserQuestionsAnswersReposito
 export class UserQuestionsAnswersRepository
   implements IUserQuestionsAnswersRepository
 {
+  async getUserQuestionsAnswers(
+    userQuestionsAnswersId: string
+  ): Promise<IUserQuestionsAnswers | null> {
+    const userQuestionsAnswers = await UserQuestionsAnswersModel.findById(
+      userQuestionsAnswersId
+    )
+      // .populate("user")
+      .exec();
+    // throw new Error("Method not implemented.");
+    return userQuestionsAnswers;
+  }
   async createUserQuestionsAnswers(
     user: string,
     questionsAnswers: { question: string; answer: string }[]

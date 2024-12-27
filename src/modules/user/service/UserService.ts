@@ -15,6 +15,7 @@ import { UserVo } from "../vo/userVo";
 import { IUserService } from "./IUserService";
 import bcrypt from "bcryptjs";
 import { DeleteUserDto } from "../dto/deleteUserDto";
+import { GetRandomQuestionDto } from "../../securitySetup/dto/getRandomQuestionDto";
 
 export class UserService implements IUserService {
   private readonly userRepository: IUserRepository;
@@ -29,6 +30,54 @@ export class UserService implements IUserService {
     this.userRepository = userRepository;
     this.userQuestionsAnswersService = userQuestionsAnswersService;
     // this.recoveryPasswordService = recoveryPasswordService;
+  }
+
+  async getUserById(userId: string): Promise<any | null> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new HttpException(StatusCodes.NOT_FOUND, "User no existe");
+    }
+    return user;
+  }
+
+  async findUserByEmail(email: string): Promise<any | null> {
+    console.log('email:::=> ', email);
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      throw new HttpException(StatusCodes.NOT_FOUND, "User no encontrado");
+    }
+    return user;
+    // throw new Error("Method not implemented.");
+  }
+  async getUserQuestionsAnswersIdByEmail(
+    getRandomQuestionDto: GetRandomQuestionDto
+  ): Promise<string | null> {
+    // console.log("entre::: ");
+    const userFound = await this.userRepository.findByEmail(
+      getRandomQuestionDto.email
+    );
+    if (!userFound) {
+      throw new HttpException(StatusCodes.NOT_FOUND, "El Usuario no existe");
+    }
+    return userFound.questionsAnswers.toString();
+    // throw new Error("Method not implemented.");
+  }
+  // async getUserQuestionsAnswersByEmail(email: string): Promise<string | null> {
+  //   const user = await this.userRepository.getByEmail(email);
+  //   if (!user) {
+  //     return null;
+  //   }
+
+  // throw new Error("Method not implemented.");
+  // }
+  async updateFirstLogin(userId: string): Promise<IUser | null> {
+    const userFound = await this.userRepository.findById(userId);
+    if (!userFound) {
+      throw new HttpException(StatusCodes.NOT_FOUND, "User no encontrado");
+    }
+    const user = this.userRepository.updateFirstLogin(userId);
+    return user;
+    // throw new Error("Method not implemented.");
   }
   async softDeleteUser(deleteUserDto: DeleteUserDto): Promise<UserVo | null> {
     const userFound = await this.userRepository.findById(deleteUserDto.userId);
