@@ -10,18 +10,91 @@ import { SecurityQuestionsVo } from "../vo/securityQuestionsVo";
 import { AnswerModel } from "../../model/recoveryPassword/answer/answerModel";
 import { UpdateAnswersDto } from "../dto/updateAnswersDto";
 import { IUserService } from "../../user/service/IUserService";
+import { GetRandomQuestionDto } from "../dto/getRandomQuestionDto";
+import { IUserQuestionsAnswersService } from "../../recoveryPassword/service/IUserQuestionsAnswersService";
+import { IQuestion } from "../../model/recoveryPassword/question/IQuestion";
 
 export class SecuritySetupService implements ISecuritySetupService {
   private readonly securitySetupRepository: ISecuritySetupRepository;
   private readonly userService: IUserService;
+  private readonly userQuestionsAnswersService: IUserQuestionsAnswersService;
 
   constructor(
     securitySetupRepository: ISecuritySetupRepository,
-    userService: IUserService
+    userService: IUserService,
+    userQuestionsAnswersService: IUserQuestionsAnswersService
   ) {
     this.securitySetupRepository = securitySetupRepository;
     this.userService = userService;
+    this.userQuestionsAnswersService = userQuestionsAnswersService;
   }
+  async checkSecurityAnswer(answer: {
+    userId: string;
+    questionId: string;
+    answerText: string;
+  }): Promise<boolean> {
+    // console.log('answer::: ', answer);
+    const user = await this.userService.getUserById(answer.userId);
+    // console.log("user::: ", user);
+    const userQuestionsAnswers =
+      await this.userQuestionsAnswersService.getUserQuestionsAnswers(
+        user.questionsAnswers
+      );
+    // console.log('userQuestionsAnswers::: ', userQuestionsAnswers);
+    const questionsAnswers = userQuestionsAnswers.questionsAnswers;
+    const questionAnswerFound = questionsAnswers.find(
+      (questionAnswer: any) =>
+        questionAnswer.question.toString() === answer.questionId
+    );
+    // console.log('questionAnswerFound::: ', questionAnswerFound);
+    const answerPopulated =
+      await this.userQuestionsAnswersService.populateAnswer(
+        questionAnswerFound.answer.toString()
+      );
+    console.log("answerPopulated::: ", answerPopulated);
+    const response = answerPopulated.answerText === answer.answerText;
+    if (!response) {
+      throw new HttpException(StatusCodes.UNAUTHORIZED, "Respuesta incorrecta");
+    }
+    return response;
+    // console.log("questionAnswerFound::: ", questionAnswerFound);
+
+    // const question = userQuestionsAnswers.map(userQuestionAnswer=>answer.questionId==)
+    // console.log("userQuestionsAnswers::: ", userQuestionsAnswers);
+    // throw new Error("Method not implemented.");
+  }
+  async findUserByEmail(email: string): Promise<any | null> {
+    // console.log('email::::::::::::: ', email);
+    const user = await this.userService.findUserByEmail(email);
+    // console.log('user::: ', user);
+    // if (!user) {
+    //   throw new HttpException(StatusCodes.NOT_FOUND, "User no encontrado");
+    // }
+    // console.log("user::: ", user);
+
+    return { userId: user._id };
+    // throw new Error("Method not implemented.");
+  }
+  async getRandomSecurityQuestion(userId: string): Promise<any> {
+    const user = await this.userService.getUserById(userId);
+    const userQuestionsAnswersId = user.questionsAnswers.toString();
+    // console.log("userQuestionsAnswersId::: ", userQuestionsAnswersId);
+    // console.log("user::: ", user);
+    const randomQuestion =
+      await this.userQuestionsAnswersService.getRandomQuestion(
+        userQuestionsAnswersId
+      );
+    // console.log('randomQuestion::: ', randomQuestion);
+    if (!randomQuestion) {
+      throw new HttpException(StatusCodes.NOT_FOUND, "pregunta no encontrada");
+    }
+    const response = {
+      questionId: randomQuestion._id.toString(),
+      questionText: randomQuestion.questionText,
+    };
+    return response;
+  }
+
   async updateSecurityAnswers(
     updateAnswersDto: UpdateAnswersDto,
     userId: string

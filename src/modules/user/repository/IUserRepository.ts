@@ -19,4 +19,5 @@ export interface IUserRepository {
   findById(userId: string): Promise<IUser | null>;
   softDeleteUser(deleteUserDto: DeleteUserDto): Promise<IUser | null>;
   updateFirstLogin(userId: string): Promise<IUser | null>;
+  // getByEmail(email: string): Promise<IUser | null>;
 }

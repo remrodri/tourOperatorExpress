@@ -1,9 +1,11 @@
 import { AnswerModel } from "../../model/recoveryPassword/answer/answerModel";
 import { IAnswer } from "../../model/recoveryPassword/answer/IAnswer";
+import { IQuestion } from "../../model/recoveryPassword/question/IQuestion";
 import { IUserQuestionsAnswers } from "../../model/recoveryPassword/userQuestionsAnswers/IUserQuestionsAnswers";
 import { UserQuestionsAnswersModel } from "../../model/recoveryPassword/userQuestionsAnswers/userQuestionsAnswersModel";
 import { IUser } from "../../model/user/IUser";
 import { UserModel } from "../../model/user/userModel";
+import { GetRandomQuestionDto } from "../dto/getRandomQuestionDto";
 import { UpdateAnswersDto } from "../dto/updateAnswersDto";
 import { UpdatePasswordDto } from "../dto/updatePasswodDto";
 import { GetQuestionsDto } from "../dto/userIdDto";
@@ -11,6 +13,11 @@ import { ISecuritySetupRepository } from "./ISecuritySetupRepository";
 import bcrypt from "bcryptjs";
 
 export class SecuritySetupRepository implements ISecuritySetupRepository {
+
+  getRandomSecurityQuestion(getRandomQuestionDto: GetRandomQuestionDto): Promise<IQuestion> {
+    console.log('getRandomQuestionDtoRepo::: ', getRandomQuestionDto);
+    throw new Error("Method not implemented.");
+  }
   async updateAnswers(
     updateAnswersDto: UpdateAnswersDto
   ): Promise<any[]> {

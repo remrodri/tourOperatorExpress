@@ -5,4 +5,8 @@ export interface IUserQuestionsAnswersRepository {
     userId: string,
     questionsAnswers: { question: string; answer: string }[]
   ): Promise<IUserQuestionsAnswers>;
+
+  getUserQuestionsAnswers(
+    userQuestionsAnswersId: string
+  ): Promise<IUserQuestionsAnswers | null>;
 }

@@ -1,7 +1,13 @@
+import { IQuestion } from "../../model/recoveryPassword/question/IQuestion";
 import { QuestionsModel } from "../../model/recoveryPassword/question/questionModel";
 import { IQuestionRepository } from "./IQuestionRepository";
 
 export class QuestionRepository implements IQuestionRepository {
+  async getQuestionById(questionId: string): Promise<IQuestion | null> {
+    return await QuestionsModel.findById(questionId);
+    // throw new Error("Method not implemented.");
+  }
+
   async getRandomQuestions(): Promise<string[]> {
     const questions = await QuestionsModel.aggregate([
       { $sample: { size: 3 } },

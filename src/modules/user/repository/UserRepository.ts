@@ -8,6 +8,10 @@ import { IUserRepository } from "./IUserRepository";
 import bcrypt from "bcryptjs";
 
 export class UserRepository implements IUserRepository {
+  // async getByEmail(email: string): Promise<IUser | null> {
+  //   return await UserModel.findOne({ email: email });
+  //   // throw new Error("Method not implemented.");
+  // }
   async updateFirstLogin(userId: string): Promise<IUser | null> {
     const user = await UserModel.findByIdAndUpdate(
       userId,
@@ -101,7 +105,11 @@ export class UserRepository implements IUserRepository {
     // throw new Error("Method not implemented.");
   }
   async findByEmail(email: string): Promise<IUser | null> {
-    return UserModel.findOne({ email, deleted: false }).exec();
+    console.log("email:::=>> ", email);
+    const userFound = await UserModel.findOne({ email, deleted: false }).exec();
+    console.log("userFound:::=>>> ", userFound);
+    // return UserModel.findOne({ email, deleted: false }).exec();
+    return userFound;
   }
   async getAll(): Promise<IUser[]> {
     return await UserModel.find({ deleted: false });
