@@ -41,7 +41,7 @@ export class UserService implements IUserService {
   }
 
   async findUserByEmail(email: string): Promise<any | null> {
-    console.log('email:::=> ', email);
+    console.log("email:::=> ", email);
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
       throw new HttpException(StatusCodes.NOT_FOUND, "User no encontrado");
@@ -124,7 +124,8 @@ export class UserService implements IUserService {
       userUpdated.ci,
       userUpdated.phone,
       userUpdated.firstLogin,
-      userUpdated.role
+      userUpdated.role,
+      userUpdated.address
     );
     return userVo;
     // throw new Error("Method not implemented.");
@@ -153,6 +154,7 @@ export class UserService implements IUserService {
       newUser._id.toString(),
       userQuestionsAnswersId
     );
+    // console.log('userUpdated::: ', userUpdated);
     if (!userUpdated) {
       throw new HttpException(
         StatusCodes.BAD_REQUEST,
@@ -167,7 +169,8 @@ export class UserService implements IUserService {
       userUpdated.ci,
       userUpdated.phone,
       userUpdated.firstLogin,
-      userUpdated.role
+      userUpdated.role,
+      userUpdated.address
     );
     return userVo;
     // console.log("userUpdated::: ", userUpdated);

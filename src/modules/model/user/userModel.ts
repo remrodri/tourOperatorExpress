@@ -16,6 +16,7 @@ const UserSchema: Schema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "UserQuestionsAnswers",
     },
+    address: { type: Schema.Types.String, required: true },
   },
   {
     timestamps: true,

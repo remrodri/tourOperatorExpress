@@ -7,6 +7,7 @@ export const CreateUserDto = z.object({
   phone: z.string().min(8, "phone debe tener al menos 8 digitos"),
   ci: z.string().min(7, "ci debe tener almenos 7 caracteres"),
   role: z.string({ message: "role es requerido" }),
+  address: z.string({ message: "address es requerido" }),
 });
 
 export type CreateUserDto = z.infer<typeof CreateUserDto>;

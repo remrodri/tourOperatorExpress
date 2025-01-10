@@ -16,7 +16,7 @@ export class AuthController {
   ): Promise<void> => {
     try {
       // const loginData = req.body;
-      // console.log("req.body::: ", loginData);
+      console.log("req.body::: ", req.body);
       const token = await this.authService.login(req.body);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)

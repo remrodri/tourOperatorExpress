@@ -12,6 +12,7 @@ export const UpdateUserDto = z.object({
   //   .min(6, "password debe tener almenos 6 caracteres")
   //   ,
   userId: z.string(),
+  address: z.string({ message: "address es requerido" }),
 });
 
 export type UpdateUserDto = z.infer<typeof UpdateUserDto>;
