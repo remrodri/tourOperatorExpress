@@ -7,6 +7,7 @@ export class UserVo {
     public readonly ci: string,
     public readonly email: string,
     public readonly firstLogin: boolean,
-    public readonly role: string
+    public readonly role: string,
+    public readonly address: string
   ) {}
 }

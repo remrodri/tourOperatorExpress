@@ -49,6 +49,7 @@ export class UserRepository implements IUserRepository {
         ci: userData.ci,
         phone: userData.phone,
         role: userData.role,
+        new: userData.address,
       },
       { new: true }
     );
@@ -94,6 +95,7 @@ export class UserRepository implements IUserRepository {
       ci: newUser.ci,
       password: newPassword,
       role: newUser.role,
+      address: newUser.address,
     });
 
     // console.log("user::: ", user);
