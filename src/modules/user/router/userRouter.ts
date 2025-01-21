@@ -12,6 +12,8 @@ import { UserQuestionsAnswersRepository } from "../../recoveryPassword/repositor
 import { AnswerRepository } from "../../recoveryPassword/repository/AnswerRepository";
 import { AnswerService } from "../../recoveryPassword/service/AnswerService";
 import { UserController } from "../controller/UserController";
+import upload from "../../../multerConfig"
+
 
 const userRouter: Router = Router();
 // const recoveryPasswordRepository = new RecoveryPasswordRepository();
@@ -39,8 +41,11 @@ userRouter.get("/users", authMiddleware, (req, res, next) =>
   userController.getAllUsers(req, res, next)
 );
 
-userRouter.post("/users", authMiddleware, (req, res, next) =>
-  userController.createUser(req, res, next)
+userRouter.post(
+  "/users",
+  authMiddleware,
+  upload.single("image"),
+  (req, res, next) => userController.createUser(req, res, next)
 );
 
 userRouter.patch("/users", authMiddleware, (req, res, next) =>

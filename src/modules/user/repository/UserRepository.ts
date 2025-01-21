@@ -81,21 +81,22 @@ export class UserRepository implements IUserRepository {
     return userUpdated;
   }
 
-  async createUser(newUser: CreateUserDto): Promise<IUser> {
+  async createUser(userDataWithImage:any): Promise<IUser> {
     // console.log('newUser::: ', newUser);
     // console.log("newUserRepo::: ", newUser);
     // const user = new UserModel(newUser);
     const newPassword = await bcrypt.hash("123456", 10);
     // console.log("password::: ", password);
     const user = new UserModel({
-      firstName: newUser.firstName,
-      lastName: newUser.lastName,
-      phone: newUser.phone,
-      email: newUser.email,
-      ci: newUser.ci,
+      firstName: userDataWithImage.firstName,
+      lastName: userDataWithImage.lastName,
+      phone: userDataWithImage.phone,
+      email: userDataWithImage.email,
+      ci: userDataWithImage.ci,
       password: newPassword,
-      role: newUser.role,
-      address: newUser.address,
+      role: userDataWithImage.role,
+      address: userDataWithImage.address,
+      imagePath: userDataWithImage.image
     });
 
     // console.log("user::: ", user);

@@ -6,7 +6,7 @@ import { UpdateUserDto } from "../dto/updateUserDto";
 export interface IUserRepository {
   getAll(): Promise<IUser[]>;
   findByEmail(email: string): Promise<IUser | null>;
-  createUser(createUser: CreateUserDto): Promise<IUser>;
+  createUser(userDataWithImage:any): Promise<IUser>;
   updateUserQuestionsAnswers(
     userId: string,
     updateUserDto: UpdateUserDto

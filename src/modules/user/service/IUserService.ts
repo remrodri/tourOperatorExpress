@@ -7,8 +7,9 @@ import { DeleteUserDto } from "../dto/deleteUserDto";
 import { GetRandomQuestionDto } from "../../securitySetup/dto/getRandomQuestionDto";
 
 export interface IUserService {
-  getAllUsers(): Promise<UserVo[]>;
-  createUser(createUserDto: CreateUserDto): Promise<UserVo>;
+  getAllUsers(): Promise<any[]>;
+  // createUser(createUserDto: CreateUserDto): Promise<UserVo>;
+  createUser(userDataWithImage:any): Promise<UserVo>;
   updateUser(updateUserDto: UpdateUserDto): Promise<UserVo | null>;
   softDeleteUser(deleteUserDto: DeleteUserDto): Promise<UserVo | null>;
   updateFirstLogin(userId: string): Promise<IUser | null>;

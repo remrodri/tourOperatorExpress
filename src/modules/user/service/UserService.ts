@@ -126,35 +126,30 @@ export class UserService implements IUserService {
       userUpdated.firstLogin,
       userUpdated.role,
       userUpdated.address
+      // userUpdated.imagePath
     );
     return userVo;
     // throw new Error("Method not implemented.");
   }
 
-  async createUser(createUserDto: CreateUserDto): Promise<UserVo> {
+  async createUser(userDataWithImage: any): Promise<any> {
     const userFound = await this.userRepository.findByEmail(
-      createUserDto.email
+      userDataWithImage.email
     );
-    // console.log("userFound::: ", userFound);
     if (userFound) {
-      // throw new Error("El usuario con ese email ya existe");
       throw new HttpException(StatusCodes.BAD_REQUEST, "El usuario ya existe");
     }
     // const answerQuestions =
-    //   await this.recoveryPasswordService.createUserQuestionsAnswers();
-    const newUser = await this.userRepository.createUser(createUserDto);
-    // console.log("newUser::: ", newUser);
+    const newUser = await this.userRepository.createUser(userDataWithImage);
     const userQuestionsAnswersId =
       await this.userQuestionsAnswersService.createUserQuestionsAnswers(
         newUser._id.toString()
       );
     console.log("userQuestionsAnswersId::: ", userQuestionsAnswersId);
-    // console.log("userQuestionsAnswersId::: ", userQuestionsAnswersId);
     const userUpdated = await this.userRepository.registerUserQuestionsAnswers(
       newUser._id.toString(),
       userQuestionsAnswersId
     );
-    // console.log('userUpdated::: ', userUpdated);
     if (!userUpdated) {
       throw new HttpException(
         StatusCodes.BAD_REQUEST,
@@ -165,25 +160,42 @@ export class UserService implements IUserService {
       userUpdated._id.toString(),
       userUpdated.firstName,
       userUpdated.lastName,
-      userUpdated.email,
-      userUpdated.ci,
       userUpdated.phone,
+      userUpdated.ci,
+      userUpdated.email,
       userUpdated.firstLogin,
       userUpdated.role,
       userUpdated.address
+      // userUpdated.imagePath
     );
-    return userVo;
-    // console.log("userUpdated::: ", userUpdated);
-    // await this.recoveryPasswordService.createUserQuestionsAnswers(
-    //   newUser._id.toString()
-    // );
-
-    // throw new Error("Method not implemented.");
+    return {
+      ...userVo,
+      imageUrl: userUpdated.imagePath
+        ? `${process.env.BASE_URL}/uploads/perfilImage/${userUpdated.imagePath}`
+        : null,
+    };
   }
 
-  async getAllUsers(): Promise<UserVo[]> {
+  async getAllUsers(): Promise<any[]> {
     // throw new Error("Method not implemented.");
     const users = await this.userRepository.getAll();
-    return users.map((user) => userMapper(user));
+    const usersWithImageUrl = users.map((user) => {
+      return {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        ci: user.ci,
+        email: user.email,
+        firstLogin: user.firstLogin,
+        role: user.role,
+        address: user.address,
+        imageUrl: user.imagePath
+          ? `${process.env.BASE_URL}${user.imagePath}`
+          : null,
+      };
+    });
+    // return users.map((user) => userMapper(user));
+    return usersWithImageUrl;
   }
 }

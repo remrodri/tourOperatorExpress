@@ -58,11 +58,21 @@ export class UserController {
     res: Response,
     next: NextFunction
   ): Promise<void> {
-    // console.log('req::: ', req.body);
-    const createUserDto = CreateUserDto.parse(req.body);
-    // console.log("createUserDto::: ", createUserDto);
+    // console.log("req::: ", req.body);
+    // console.log(req.file);
     try {
-      const user = await this.userService.createUser(createUserDto);
+      const createUserDto = CreateUserDto.parse(req.body);
+      const imagePath = req.file?.path || null;
+      if (!imagePath) {
+        throw new Error("Falla al subir la imagen");
+      }
+      const image = imagePath
+        ? `/uploads/perfilImage/${req.file?.filename}`
+        : null;
+      const userDataWithImage = { ...createUserDto, image };
+      // console.log("userDataWithImage::: ", userDataWithImage);
+      const user = await this.userService.createUser(userDataWithImage);
+      // console.log('user-controller::: ', user);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.CREATED)
         .setMessage("Usuario creado satisfactoriamente")

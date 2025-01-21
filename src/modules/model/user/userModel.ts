@@ -17,6 +17,7 @@ const UserSchema: Schema = new Schema(
       ref: "UserQuestionsAnswers",
     },
     address: { type: Schema.Types.String, required: true },
+    imagePath: { type: Schema.Types.String },
   },
   {
     timestamps: true,
