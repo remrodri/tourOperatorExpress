@@ -4,6 +4,10 @@ import { ITourTypeRepository } from "./ITourTypeRepository";
 import { TourTypeModel } from "../../model/tourType/tourTypeModel";
 
 export class TourTypeRepository implements ITourTypeRepository {
+  getAllTourTypes(): Promise<ITourType[]> {
+    return TourTypeModel.find().exec();
+    // throw new Error("Method not implemented.");
+  }
   async findByName(name: string): Promise<ITourType | null> {
     const tourTypeFound = await TourTypeModel.findOne({ name: name }).exec();
     return tourTypeFound;

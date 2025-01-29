@@ -1,3 +1,4 @@
+import { ITourType } from "src/modules/model/tourType/ITourType";
 import { HttpException } from "../../../middleware/httpException";
 import { CreateTourTypeDto } from "../dto/createTourTypeDto";
 import { ITourTypeRepository } from "../repository/ITourTypeRepository";
@@ -33,5 +34,24 @@ export class TourTypeService implements ITourTypeService {
     // console.log("newTourType::: ", newTourType);
 
     // throw new Error("Method not implemented.");
+  }
+  async getAllTourTypes(): Promise<any> {
+    const tourTypes: ITourType[] =
+      await this.tourTypeRepository.getAllTourTypes();
+    if (!tourTypes) {
+      throw new HttpException(
+        StatusCodes.NOT_FOUND,
+        "Tour Types no encontrados"
+      );
+    }
+    const vos = tourTypes.map(
+      (tourType) =>
+        new TourTypeVo(
+          tourType._id.toString(),
+          tourType.name,
+          tourType.description
+        )
+    );
+    return vos;
   }
 }

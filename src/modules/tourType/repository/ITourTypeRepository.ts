@@ -3,5 +3,6 @@ import { CreateTourTypeDto } from "../dto/createTourTypeDto";
 
 export interface ITourTypeRepository {
   createTourType(dto: CreateTourTypeDto): Promise<ITourType>;
-  findByName(name:string): Promise<ITourType | null>;
+  findByName(name: string): Promise<ITourType | null>;
+  getAllTourTypes(): Promise<ITourType[]>;
 }

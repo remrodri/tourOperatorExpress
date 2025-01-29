@@ -26,4 +26,19 @@ export class TourTypeController {
       next(error);
     }
   }
+
+  async getAllTourTypes(req: Request, res: Response, next: NextFunction) {
+    try {
+      const users = await this.tourTypeService.getAllTourTypes();
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setMessage("Tour Types encontrados satisfactoriamente")
+        .setData(users)
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      next(error);  
+      
+    }
+  }
 }
