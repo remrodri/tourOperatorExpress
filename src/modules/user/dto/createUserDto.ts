@@ -8,6 +8,7 @@ export const CreateUserDto = z.object({
   ci: z.string().min(7, "ci debe tener almenos 7 caracteres"),
   role: z.string({ message: "role es requerido" }),
   address: z.string({ message: "address es requerido" }),
+  imagePath: z.string().optional(), // Ruta de la imagen
 });
 
 export type CreateUserDto = z.infer<typeof CreateUserDto>;

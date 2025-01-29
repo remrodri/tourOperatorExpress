@@ -12,4 +12,5 @@ export interface IUser extends Document<Types.ObjectId> {
   role: string;
   questionsAnswers: Types.ObjectId;
   address: string;
+  imagePath:string
 }

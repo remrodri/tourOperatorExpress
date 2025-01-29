@@ -4,6 +4,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import apiRouter from "./modules/apiRouter";
 import { errorMiddleware } from "./middleware/errorMiddleware";
+import path from "path";
 // import swaggerUi from "swagger-ui-express";
 // import swaggerDocument from "./swagger.json"; // Generado con Swagger
 
@@ -34,6 +35,7 @@ app.use(errorMiddleware);
 //     details: err.message,
 //   });
 // });
-
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+app.use(express.urlencoded({ extended: true }));
 
 export default app;

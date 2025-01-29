@@ -9,6 +9,7 @@ export const userMapper = (user: any) => {
     user.ci,
     user.email,
     user.firstLogin,
-    user.role.toString()
+    user.role.toString(),
+    user.imageUrl
   );
 };
