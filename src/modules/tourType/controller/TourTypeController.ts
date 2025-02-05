@@ -11,6 +11,25 @@ export class TourTypeController {
     this.tourTypeService = tourTypeService;
   }
 
+  async updateTourType(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    // console.log("req.body::: ", req.body);
+    const { id } = req.params;
+    // console.log('id::: ', id);
+    const dto = CreateTourTypeDto.parse(req.body);
+    // console.log('dto::: ', dto);
+    const tourTypeUpdated = await this.tourTypeService.updateTourType(dto, id);
+    const response = new ApiResponseBuilder()
+      .setStatusCode(StatusCodes.OK)
+      .setData(tourTypeUpdated)
+      .setMessage("tourType updated successfully")
+      .build();
+    res.status(StatusCodes.OK).json(response);
+  }
+
   async createTourType(req: Request, res: Response, next: NextFunction) {
     // console.log("req.body::: ", req.body);
     try {
@@ -37,8 +56,7 @@ export class TourTypeController {
         .build();
       res.status(StatusCodes.OK).json(response);
     } catch (error) {
-      next(error);  
-      
+      next(error);
     }
   }
 }
