@@ -2,7 +2,7 @@ import { ITourType } from "src/modules/model/tourType/ITourType";
 import { HttpException } from "../../../middleware/httpException";
 import { CreateTourTypeDto } from "../dto/createTourTypeDto";
 import { ITourTypeRepository } from "../repository/ITourTypeRepository";
-import { TourTypeVo } from "../vo/tourTypeVo";
+import { TourTypeVo } from "../vo/TourTypeVo";
 import { ITourTypeService } from "./ITourTypeService";
 import { StatusCodes } from "http-status-codes";
 
@@ -11,6 +11,42 @@ export class TourTypeService implements ITourTypeService {
 
   constructor(tourTypeRepository: ITourTypeRepository) {
     this.tourTypeRepository = tourTypeRepository;
+  }
+  async updateTourType(
+    dto: CreateTourTypeDto,
+    id: string
+  ): Promise<TourTypeVo> {
+    try {
+      console.log("id::: ", id);
+      console.log("dto::: ", dto);
+      const tourTypeFound = await this.tourTypeRepository.findById(id);
+      if (!tourTypeFound) {
+        throw new HttpException(StatusCodes.NOT_FOUND, "tourType not found");
+      }
+      const tourTypeUpdated = await this.tourTypeRepository.updateTourType(
+        dto,
+        id
+      );
+      if (!tourTypeUpdated) {
+        throw new HttpException(
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          "Error updating tourType"
+        );
+      }
+      // console.log("tourTypeFound::: ", tourTypeFound);
+      // throw new Error("Method not implemented.");
+      const response = new TourTypeVo(
+        tourTypeUpdated._id.toString(),
+        tourTypeUpdated.name,
+        tourTypeUpdated.description
+      );
+      return response;
+    } catch (error) {
+      throw new HttpException(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Error en el servidor"
+      );
+    }
   }
 
   async createTourType(dto: CreateTourTypeDto): Promise<any> {
