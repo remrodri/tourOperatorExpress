@@ -23,4 +23,8 @@ tourTypeRouter.put("/tour-types/:id", (req, res, next) =>
   tourTypeController.updateTourType(req, res, next)
 );
 
+tourTypeRouter.delete("/tour-types/:id", (req, res, next) =>
+  tourTypeController.deleteTourType(req, res, next)
+);
+
 export default tourTypeRouter;

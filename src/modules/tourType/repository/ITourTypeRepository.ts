@@ -3,6 +3,7 @@ import { CreateTourTypeDto } from "../dto/createTourTypeDto";
 import { TourTypeVo } from "../vo/TourTypeVo";
 
 export interface ITourTypeRepository {
+  softDelete(id: string): Promise<ITourType | null>;
   createTourType(dto: CreateTourTypeDto): Promise<ITourType>;
   findByName(name: string): Promise<ITourType | null>;
   getAllTourTypes(): Promise<ITourType[]>;

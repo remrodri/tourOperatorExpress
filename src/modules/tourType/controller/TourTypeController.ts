@@ -11,6 +11,22 @@ export class TourTypeController {
     this.tourTypeService = tourTypeService;
   }
 
+  async deleteTourType(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    const { id } = req.params;
+    const deleted = await this.tourTypeService.softDelete(id);
+    // console.log('deleted::: ', deleted);
+    const response = new ApiResponseBuilder()
+      .setStatusCode(StatusCodes.OK)
+      .setData(deleted)
+      .setMessage("tourType deleted successfully")
+      .build();
+    res.status(StatusCodes.OK).json(response);
+  }
+
   async updateTourType(
     req: Request,
     res: Response,
