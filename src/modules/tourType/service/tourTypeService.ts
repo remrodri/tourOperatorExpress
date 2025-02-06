@@ -12,6 +12,28 @@ export class TourTypeService implements ITourTypeService {
   constructor(tourTypeRepository: ITourTypeRepository) {
     this.tourTypeRepository = tourTypeRepository;
   }
+  async softDelete(id: string): Promise<TourTypeVo> {
+    // console.log("id::: ", id);
+    const tourTypeFound = this.tourTypeRepository.findById(id);
+    if (!tourTypeFound) {
+      throw new HttpException(StatusCodes.NOT_FOUND, "tourType not found");
+    }
+    const tourTypeDeleted = await this.tourTypeRepository.softDelete(id);
+    // console.log('tourTypeDeleted::: ', tourTypeDeleted);
+    if (!tourTypeDeleted) {
+      throw new HttpException(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Error deleting tourType"
+      );
+    }
+    const vo = new TourTypeVo(
+      tourTypeDeleted.id.toString(),
+      tourTypeDeleted.name,
+      tourTypeDeleted.description
+    );
+    return vo;
+  }
+
   async updateTourType(
     dto: CreateTourTypeDto,
     id: string
