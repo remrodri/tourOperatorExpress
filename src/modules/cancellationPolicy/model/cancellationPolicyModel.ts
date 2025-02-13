@@ -7,6 +7,7 @@ const cancellationPolicySchema: Schema = new Schema(
     deadLine: { type: Schema.Types.Number, required: true },
     refoundPercentage: { type: Schema.Types.Number, required: true },
     description: { type: Schema.Types.String, required: true },
+    deleted: { type: Schema.Types.Boolean, default: false },
   },
   {
     timestamps: true,
