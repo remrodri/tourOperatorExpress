@@ -32,4 +32,22 @@ export class CancellationPolicyController {
       next(error);
     }
   }
+
+  async getAllCancellationPolicy(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const vos = await this.cancellationPolicyService.getAllCancellationPolicy();
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setMessage("CancellationPolicy found")
+        .setData(vos)
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

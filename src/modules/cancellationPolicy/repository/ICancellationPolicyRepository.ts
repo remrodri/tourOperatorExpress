@@ -5,4 +5,5 @@ export interface ICancellationPolicyRepository {
   createCancellationPolicyDB(
     dto: CreateCancellationPolicyDto
   ): Promise<ICancellationPolicy | null>;
+  getAllCancellationPolicyDB(): Promise<ICancellationPolicy[]>;
 }

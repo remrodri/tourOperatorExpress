@@ -17,4 +17,8 @@ cancellationPolicyRouter.post("/cancellation-policy", (req, res, next) =>
   cancellationPolicyController.createCancellationPolicy(req, res, next)
 );
 
+cancellationPolicyRouter.get("/cancellation-policy", (req, res, next) =>
+  cancellationPolicyController.getAllCancellationPolicy(req, res, next)
+);
+
 export default cancellationPolicyRouter;
