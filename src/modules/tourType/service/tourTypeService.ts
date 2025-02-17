@@ -39,8 +39,8 @@ export class TourTypeService implements ITourTypeService {
     id: string
   ): Promise<TourTypeVo> {
     try {
-      console.log("id::: ", id);
-      console.log("dto::: ", dto);
+      // console.log("id::: ", id);
+      // console.log("dto::: ", dto);
       const tourTypeFound = await this.tourTypeRepository.findById(id);
       if (!tourTypeFound) {
         throw new HttpException(StatusCodes.NOT_FOUND, "tourType not found");
