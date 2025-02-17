@@ -10,6 +10,46 @@ export class CancellationPolicyController {
   constructor(cancellationPolicyService: ICancellationPolicyService) {
     this.cancellationPolicyService = cancellationPolicyService;
   }
+  async updateCancellationlPolicy(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      console.log('req.body::: ', req.body);
+      const dto = CreateCancellationPolicyDto.parse(req.body.values);
+      console.log('dto::: ', dto);
+      const vo = await this.cancellationPolicyService.update(id, dto);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setData(vo)
+        .setMessage("updated successfully")
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteCancellationPolicy(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      const deleted = await this.cancellationPolicyService.softDelete(id);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setData(deleted)
+        .setMessage("Deleted succesfully")
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 
   async createCancellationPolicy(
     req: Request,
@@ -39,7 +79,8 @@ export class CancellationPolicyController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const vos = await this.cancellationPolicyService.getAllCancellationPolicy();
+      const vos =
+        await this.cancellationPolicyService.getAllCancellationPolicy();
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
         .setMessage("CancellationPolicy found")

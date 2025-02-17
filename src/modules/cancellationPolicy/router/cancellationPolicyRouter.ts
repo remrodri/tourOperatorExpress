@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { CancellationPolicyController } from "../controller/CancellationPolicyController";
-import { CancellationPolicyService } from "../service/CancellationPolicyService";
 import { CancellationPolicyRepository } from "../repository/CancellationPolicyRepository";
+import { CancellationPolicyService } from "../service/CancellationPolicyService";
 
 const cancellationPolicyRepository = new CancellationPolicyRepository();
 const cancellationPolicyService = new CancellationPolicyService(
@@ -12,6 +12,14 @@ const cancellationPolicyController = new CancellationPolicyController(
 );
 
 const cancellationPolicyRouter = Router();
+
+cancellationPolicyRouter.put("/cancellation-policy/:id", (req, res, next) =>
+  cancellationPolicyController.updateCancellationlPolicy(req, res, next)
+);
+
+cancellationPolicyRouter.delete("/cancellation-policy/:id", (req, res, next) =>
+  cancellationPolicyController.deleteCancellationPolicy(req, res, next)
+);
 
 cancellationPolicyRouter.post("/cancellation-policy", (req, res, next) =>
   cancellationPolicyController.createCancellationPolicy(req, res, next)
