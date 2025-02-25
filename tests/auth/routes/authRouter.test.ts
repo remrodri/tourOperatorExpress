@@ -3,9 +3,7 @@ import bcrypt from "bcryptjs";
 import app from "../../../src/app";
 import mongoose from "mongoose";
 import { UserModel } from "../../../src/modules/model/user/userModel";
-import { AuthRepository } from "@repository/authRepository";
 
-// jest.mock("../../../src/modules/auth/repository/authRepository");
 jest.unmock("@repository/authRepository.ts");
 
 describe("POST /api/v1/auth/login", () => {
@@ -15,7 +13,7 @@ describe("POST /api/v1/auth/login", () => {
       email: "test@example.com",
       password: hashedPassword,
       deleted: false,
-      role: new mongoose.Types.ObjectId(), // Usar un ObjectId válido
+      role: new mongoose.Types.ObjectId(),
       ci: "123456789",
       phone: "5551234567",
       lastName: "Test",
