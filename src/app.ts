@@ -12,10 +12,13 @@ dotenv.config();
 
 const app: Application = express();
 
+
 // Middlewares
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.use("/api", apiRouter);
 // Documentación con Swagger
@@ -35,7 +38,6 @@ app.use(errorMiddleware);
 //     details: err.message,
 //   });
 // });
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
-app.use(express.urlencoded({ extended: true }));
+
 
 export default app;
