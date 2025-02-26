@@ -10,6 +10,27 @@ export class TouristDestinationController {
   constructor(touristDestinationService: ITouristDestinationService) {
     this.touristDestinationService = touristDestinationService;
   }
+
+  async getAllTouristDestination(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    // console.log("::: getall");
+    try {
+      const vos =
+        await this.touristDestinationService.getAllTouristDestinations();
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setMessage("TouristDestinations found")
+        .setData(vos)
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async createTouristDestination(
     req: Request,
     res: Response,

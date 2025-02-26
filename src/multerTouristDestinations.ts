@@ -13,7 +13,7 @@ const storage: StorageEngine = multer.diskStorage({
 
     const destinationPath = path.join(
       __dirname,
-      "../uploads/destinations/",
+      "../uploads/destinations",
       req.body.imageFolder
     );
 
