@@ -14,6 +14,10 @@ const touristDestinationController = new TouristDestinationController(
 
 const touristDestinationRouter = Router();
 
+touristDestinationRouter.get("/tourist-destination", (req, res, next) =>
+  touristDestinationController.getAllTouristDestination(req, res, next)
+);
+
 touristDestinationRouter.post(
   "/tourist-destination",
   upload.array("newImages", 5), // Ahora funciona sin parámetros adicionales

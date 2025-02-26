@@ -75,7 +75,7 @@ export class CancellationPolicyService implements ICancellationPolicyService {
       );
     }
 
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
   }
   async getAllCancellationPolicy(): Promise<CancellationPolicyVo[]> {
     const response =

@@ -6,6 +6,10 @@ import { ITouristDestinationRepository } from "./ITouristDestinationRepository";
 export class TouristDestinationRepository
   implements ITouristDestinationRepository
 {
+  async getAllDB(): Promise<ITouristDestination[]> {
+    return TouristDestinationModel.find().exec();
+    // throw new Error("Method not implemented.");
+  }
   async createDB(
     dto: TouristDestinationDto
   ): Promise<ITouristDestination | null> {
