@@ -3,12 +3,43 @@ import { ITouristDestinationService } from "../service/ITouristDestinationServic
 import { TouristDestinationDto } from "../dto/TouristDestinationDto";
 import { ApiResponseBuilder } from "../../../utils/response/apiResponseBuilder";
 import { StatusCodes } from "http-status-codes";
+import { UpdateTouristDestinationDto } from "../dto/updateTouristDestinationDto";
 
 export class TouristDestinationController {
   private readonly touristDestinationService: ITouristDestinationService;
 
   constructor(touristDestinationService: ITouristDestinationService) {
     this.touristDestinationService = touristDestinationService;
+  }
+
+  async updateTouristDestination(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id } = req.params;
+      const { name, description, existingImages } = req.body;
+      const newImages = req.files as Express.Multer.File[];
+
+      // const parsedData = TouristDestinationDto.parse({ name, description });
+      const dto = UpdateTouristDestinationDto.parse({name,description})
+      console.log('dto::: ', dto);
+      const vo = await this.touristDestinationService.updateTouristDestination(
+        id,
+        dto,
+        existingImages ? JSON.parse(existingImages) : [],
+        newImages
+      );
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setMessage("TouristDestination successfully updated")
+        .setData(vo)
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
   }
 
   async getAllTouristDestination(
