@@ -25,4 +25,11 @@ touristDestinationRouter.post(
     touristDestinationController.createTouristDestination(req, res, next)
 );
 
+touristDestinationRouter.put(
+  "/tourist-destination/:id",
+  upload.array("newImages", 5),
+  (req, res, next) =>
+    touristDestinationController.updateTouristDestination(req, res, next)
+);
+
 export default touristDestinationRouter;

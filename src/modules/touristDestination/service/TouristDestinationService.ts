@@ -1,15 +1,69 @@
+import path from "path";
 import { HttpException } from "../../../middleware/httpException";
 import { TouristDestinationDto } from "../dto/TouristDestinationDto";
 import { ITouristDestinationRepository } from "../repository/ITouristDestinationRepository";
 import { TouristDestinationVo } from "../vo/TouristDestinationVo";
 import { ITouristDestinationService } from "./ITouristDestinationService";
 import { StatusCodes } from "http-status-codes";
+import fs from "fs";
+import { UpdateTouristDestinationDto } from "../dto/updateTouristDestinationDto";
 
 export class TouristDestinationService implements ITouristDestinationService {
   private readonly touristDestinationRepository: ITouristDestinationRepository;
 
   constructor(touristDestinationRepository: ITouristDestinationRepository) {
     this.touristDestinationRepository = touristDestinationRepository;
+  }
+  async updateTouristDestination(
+    id: string,
+    dto: UpdateTouristDestinationDto,
+    existingImages: string[],
+    files: Express.Multer.File[]
+  ): Promise<TouristDestinationVo> {
+    const destination = await this.touristDestinationRepository.findByIdDB(id);
+    if (!destination) {
+      throw new HttpException(
+        StatusCodes.NOT_FOUND,
+        "TouristDestination not found"
+      );
+    }
+    destination.name = dto.name;
+    destination.description = dto.description;
+
+    const newImagePaths = files.map(
+      (file) =>
+        `/uploads/destinations/${destination.imageFolder}/${file.filename}`
+    );
+    destination.images = [...existingImages, ...newImagePaths];
+
+    const updatedTouristDestination =
+      await this.touristDestinationRepository.updateDB(id, destination);
+    if (!updatedTouristDestination) {
+      throw new HttpException(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Error updating destinations"
+      );
+    }
+
+    const existingImagesSet = new Set(existingImages);
+    const imagesToDelete = destination.images.filter(
+      (image) => !existingImagesSet.has(image)
+    );
+
+    imagesToDelete.forEach((imagePath) => {
+      const absolutePath = path.join(__dirname, "..", imagePath);
+      if (fs.existsSync(absolutePath)) fs.unlinkSync(absolutePath);
+    });
+    return new TouristDestinationVo(
+      updatedTouristDestination._id.toString(),
+      updatedTouristDestination.name,
+      updatedTouristDestination.description,
+      updatedTouristDestination.imageFolder,
+      updatedTouristDestination.images,
+      updatedTouristDestination.deleted
+    );
+
+    throw new Error("Method not implemented.");
   }
   async getAllTouristDestinations(): Promise<TouristDestinationVo[]> {
     const touristDestinations =
