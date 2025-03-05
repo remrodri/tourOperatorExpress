@@ -7,12 +7,26 @@ import { ITouristDestinationService } from "./ITouristDestinationService";
 import { StatusCodes } from "http-status-codes";
 import fs from "fs";
 import { UpdateTouristDestinationDto } from "../dto/updateTouristDestinationDto";
+import { DeleteTouristDestinationDto } from "../dto/deleteTouristDestinationDto";
+import { DeletedTouristDestinationVo } from "../vo/deletedTouristDestinationVo";
 
 export class TouristDestinationService implements ITouristDestinationService {
   private readonly touristDestinationRepository: ITouristDestinationRepository;
 
   constructor(touristDestinationRepository: ITouristDestinationRepository) {
     this.touristDestinationRepository = touristDestinationRepository;
+  }
+  async softDeleteTouristDestination(
+    dto: DeleteTouristDestinationDto
+  ): Promise<DeletedTouristDestinationVo> {
+    const deleted = await this.touristDestinationRepository.softDeleteDB(dto);
+    if (!deleted) {
+      throw new HttpException(
+        StatusCodes.NOT_FOUND,
+        "Tourist destination not found"
+      );
+    }
+    return new DeletedTouristDestinationVo(deleted._id.toString());
   }
   async updateTouristDestination(
     id: string,
