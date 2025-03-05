@@ -14,6 +14,10 @@ const touristDestinationController = new TouristDestinationController(
 
 const touristDestinationRouter = Router();
 
+touristDestinationRouter.delete("/tourist-destination/:id", (req, res, next) =>
+  touristDestinationController.deleteTorusitDestination(req, res, next)
+);
+
 touristDestinationRouter.get("/tourist-destination", (req, res, next) =>
   touristDestinationController.getAllTouristDestination(req, res, next)
 );
