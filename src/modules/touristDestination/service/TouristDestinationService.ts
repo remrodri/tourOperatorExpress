@@ -77,7 +77,7 @@ export class TouristDestinationService implements ITouristDestinationService {
       updatedTouristDestination.deleted
     );
 
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
   }
   async getAllTouristDestinations(): Promise<TouristDestinationVo[]> {
     const touristDestinations =

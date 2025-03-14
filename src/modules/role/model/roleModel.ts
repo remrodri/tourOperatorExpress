@@ -8,8 +8,14 @@ const RoleSchema: Schema = new Schema(
       required: true,
       unique: true,
     },
+    color: {
+      type: Schema.Types.String,
+      required: true,
+      unique: true,
+    },
   },
   {
+    timestamps:true,
     collection: "Roles",
   }
 );

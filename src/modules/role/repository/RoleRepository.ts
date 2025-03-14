@@ -1,5 +1,5 @@
-import { IRole } from "../../model/role/IRole";
-import { RoleModel } from "../../model/role/roleModel";
+import { IRole } from "../model/IRole";
+import { RoleModel } from "../model/roleModel";
 import { IRoleRepository } from "./IRoleRepository";
 
 export class RoleRepository implements IRoleRepository {

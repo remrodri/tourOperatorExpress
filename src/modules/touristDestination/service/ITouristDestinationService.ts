@@ -1,4 +1,3 @@
-import { DeleteTouristDestinationDto } from "../dto/deleteTouristDestinationDto";
 import { TouristDestinationDto } from "../dto/TouristDestinationDto";
 import { UpdateTouristDestinationDto } from "../dto/updateTouristDestinationDto";
 import { DeletedTouristDestinationVo } from "../vo/deletedTouristDestinationVo";
@@ -6,7 +5,7 @@ import { TouristDestinationVo } from "../vo/TouristDestinationVo";
 
 export interface ITouristDestinationService {
   softDeleteTouristDestination(
-    dto:DeleteTouristDestinationDto
+    dto:DeletedTouristDestinationVo
   ):Promise<DeletedTouristDestinationVo>
   updateTouristDestination(
     id: string,
