@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import { ApiResponseBuilder } from "../../../utils/response/apiResponseBuilder";
-import { STATUS_CODES } from "http";
 import { StatusCodes } from "http-status-codes";
 import { IRoleService } from "../service/IRoleService";
 
@@ -11,6 +10,9 @@ export class RoleController {
     this.roleService = roleService;
   }
 
+  async createRole(req: Request, res: Response, next: NextFunction) {
+    console.log('req.body::: ', req.body);
+  }
   async getAllRoles(req: Request, res: Response, next: NextFunction) {
     try {
       const roles = await this.roleService.getAllRoles();

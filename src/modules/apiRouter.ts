@@ -6,6 +6,7 @@ import securitySetupRouter from "./securitySetup/router/securitySetupRouter";
 import tourTypeRouter from "./tourType/router/tourTypeRouter";
 import cancellationPolicyRouter from "./cancellationPolicy/router/cancellationPolicyRouter";
 import touristDestinationRouter from "./touristDestination/router/touristDestinationRouter";
+import tourPackageRouter from "./tourPackage/router/tourPackageRouter";
 
 const apiRouter: Router = Router();
 
@@ -16,5 +17,6 @@ apiRouter.use("/v1", securitySetupRouter);
 apiRouter.use("/v1", tourTypeRouter);
 apiRouter.use("/v1", cancellationPolicyRouter);
 apiRouter.use("/v1", touristDestinationRouter);
+apiRouter.use("/v1", tourPackageRouter);
 
 export default apiRouter;
