@@ -3,15 +3,20 @@ import { TourPackageDto } from "../dto/TourPackageDto";
 import { ITourPackage } from "../model/ITourPackage";
 import { TourPackageModel } from "../model/TourPackageModel";
 import { ITourPackageRepository } from "./ITourPackageRepository";
+import { DeleteTourPackageDto } from "../dto/DeleteTourPackageDto";
 
 export class TourPackageRepository implements ITourPackageRepository {
+  async softDeleteDB(dto: DeleteTourPackageDto): Promise<ITourPackage | null> {
+    return await TourPackageModel.findByIdAndUpdate(
+      dto.id,
+      { status: "draft" },
+      { new: true }
+    );
+  }
   async findByIdDB(id: string): Promise<ITourPackage | null> {
     return await TourPackageModel.findById(id);
   }
-  async updateDB(
-    id: string,
-    dto: any
-  ): Promise<ITourPackage | null> {
+  async updateDB(id: string, dto: any): Promise<ITourPackage | null> {
     return await TourPackageModel.findByIdAndUpdate(id, dto, { new: true });
   }
   async geatAllDB(): Promise<ITourPackage[]> {

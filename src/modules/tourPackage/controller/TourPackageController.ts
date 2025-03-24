@@ -3,12 +3,30 @@ import { TourPackageDto } from "../dto/TourPackageDto";
 import { ITourPackageService } from "../service/ITourPackageService";
 import { ApiResponseBuilder } from "../../../utils/response/apiResponseBuilder";
 import { StatusCodes } from "http-status-codes";
+import { HttpException } from "src/middleware/httpException";
+import { DeleteTourPackageDto } from "../dto/DeleteTourPackageDto";
 
 export class TourPackageController {
   private readonly tourPackageService: ITourPackageService;
 
   constructor(tourPackageService: ITourPackageService) {
     this.tourPackageService = tourPackageService;
+  }
+
+  async deleteTourPackage(req: Request, res: Response, next: NextFunction) {
+    try {
+      // const { id } = req.params;
+      const dto = DeleteTourPackageDto.parse(req.params);
+      const vo = await this.tourPackageService.delete(dto);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setMessage("Deleted succesfully")
+        .setData(vo)
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
   }
 
   async updateTourPackage(
