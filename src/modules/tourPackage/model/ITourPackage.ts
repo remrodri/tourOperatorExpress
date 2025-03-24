@@ -7,7 +7,8 @@ export interface ITourPackage extends Document<Types.ObjectId> {
   cancellationPolicy: Types.ObjectId;
   touristDestination: Types.ObjectId;
   duration: number;
-  selectedDates: string[];
+  dateRanges: Types.ObjectId[];
+  // dateRanges: { _id: string; dates: string[]; state: string }[];
   price: number;
   itinerary: IItinerary;
   status: string;

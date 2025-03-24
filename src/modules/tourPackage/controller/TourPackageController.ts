@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { TourPackageDto } from "../dto/CreateTourPackageDto";
+import { TourPackageDto } from "../dto/TourPackageDto";
 import { ITourPackageService } from "../service/ITourPackageService";
 import { ApiResponseBuilder } from "../../../utils/response/apiResponseBuilder";
 import { StatusCodes } from "http-status-codes";
@@ -11,6 +11,27 @@ export class TourPackageController {
     this.tourPackageService = tourPackageService;
   }
 
+  async updateTourPackage(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      const dto = TourPackageDto.parse(req.body);
+      // console.log("dto::: ", dto);
+      const vo = await this.tourPackageService.update(id, dto);
+      // console.log('vo::: ', vo);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setData(vo)
+        .setMessage("Updated successfully")
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
   async getAllTourPackages(req: Request, res: Response, next: NextFunction) {
     try {
       const vos = await this.tourPackageService.getAllTourPackages();
@@ -32,6 +53,7 @@ export class TourPackageController {
     next: NextFunction
   ): Promise<void> {
     try {
+      // console.log("req.body::: ", req.body);
       const dto = TourPackageDto.parse(req.body);
       // console.log('dto::: ', dto);
       const vo = await this.tourPackageService.createTourPackage(dto);
