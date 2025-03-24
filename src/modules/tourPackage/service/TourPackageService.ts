@@ -7,6 +7,7 @@ import { StatusCodes } from "http-status-codes";
 import { ITourPackage } from "../model/ITourPackage";
 import { IDateRangeService } from "../../dateRange/service/IDateRangeService";
 import { DateRangeDto } from "../../dateRange/dto/DateRangeDto";
+import { DeleteTourPackageDto } from "../dto/DeleteTourPackageDto";
 
 export class TourPackageService implements ITourPackageService {
   private readonly tourPackageRepository: ITourPackageRepository;
@@ -19,6 +20,33 @@ export class TourPackageService implements ITourPackageService {
     this.tourPackageRepository = tourPackageRepository;
     this.dateRangeService = dateRangeService;
   }
+  async delete(dto: DeleteTourPackageDto): Promise<TourPackageVo> {
+    const tpFound = await this.tourPackageRepository.findByIdDB(dto.id);
+    if (!tpFound) {
+      throw new HttpException(StatusCodes.NOT_FOUND, "Tour package not found");
+    }
+    const tpDeleted = await this.tourPackageRepository.softDeleteDB(dto);
+    if (!tpDeleted) {
+      throw new HttpException(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Error deleting tour package"
+      );
+    }
+    return new TourPackageVo(
+      tpDeleted._id.toString(),
+      tpDeleted.name,
+      tpDeleted.tourType.toString(),
+      tpDeleted.cancellationPolicy.toString(),
+      tpDeleted.touristDestination.toString(),
+      tpDeleted.duration,
+      tpDeleted.dateRanges.map((dr) => {
+        return { id: dr._id.toString() };
+      }),
+      tpDeleted.price,
+      tpDeleted.itinerary,
+      tpDeleted.status
+    );
+  }
 
   async createTourPackage(dto: TourPackageDto): Promise<TourPackageVo> {
     try {
@@ -30,7 +58,7 @@ export class TourPackageService implements ITourPackageService {
             state: "activo",
           };
           const dateRangeVo = await this.dateRangeService.create(dateRangeDto);
-          return {id:dateRangeVo.id};
+          return { id: dateRangeVo.id };
           // return dateRangeVo;
         })
       );
@@ -63,7 +91,7 @@ export class TourPackageService implements ITourPackageService {
         // createdTourPackage.dateRanges,
         // createdTourPackage.dateRanges.map((dr) => dr._id.toString()),
         createdTourPackage.dateRanges.map((dr) => {
-          return {id:dr._id.toString()}
+          return { id: dr._id.toString() };
         }),
         createdTourPackage.price,
         {
