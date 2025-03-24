@@ -52,9 +52,10 @@ const TourPackageSchema: Schema = new Schema(
       required: [true, "Duration is required"],
       min: [1, "Duration must be at least 1 day"],
     },
-    selectedDates: {
-      type: [Schema.Types.String],
-      required: [true, "Selected dates are required"],
+    dateRanges: {
+      type: [Schema.Types.ObjectId],
+      ref: 'DateRange',
+      required: [true, "Date ranges are required"],
     },
     price: {
       type: Schema.Types.Number,

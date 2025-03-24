@@ -1,3 +1,5 @@
+import { DateRangeVo } from "src/modules/dateRange/vo/DateRangeVo";
+
 export class TourPackageVo {
   constructor(
     public readonly id: string,
@@ -6,7 +8,12 @@ export class TourPackageVo {
     public readonly cancellationPolicy: string,
     public readonly touristDestination: string,
     public readonly duration: number,
-    public readonly selectedDates: string[],
+    public readonly dateRanges: {id:string}[],
+    // public readonly dateRanges: {
+    //   id: string;
+    //   dates: string[];
+    //   state: string;
+    // }[],
     public readonly price: number,
     public readonly itinerary: {
       days: {
