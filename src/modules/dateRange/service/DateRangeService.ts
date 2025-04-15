@@ -15,7 +15,7 @@ export class DateRangeService implements IDateRangeService {
   async getAll(): Promise<DateRangeVo[]> {
     const dateRanges = await this.dateRangeRepository.getAllDB();
     const vos = dateRanges.map(
-      (dr: IDateRange) => new DateRangeVo(dr._id.toString(), dr.dates, dr.state)
+      (dr: IDateRange) => new DateRangeVo(dr._id.toString(), dr.dates, dr.state,dr.guides)
     );
     return vos;
   }
@@ -30,7 +30,8 @@ export class DateRangeService implements IDateRangeService {
     const vo = new DateRangeVo(
       response._id.toString(),
       response.dates,
-      response.state
+      response.state,
+      response.guides
     );
     return vo;
   }
@@ -49,7 +50,8 @@ export class DateRangeService implements IDateRangeService {
     return new DateRangeVo(
       drUpdated._id.toString(),
       drUpdated.dates,
-      drUpdated.state
+      drUpdated.state,
+      drUpdated.guides
     );
   }
   async findById(id: string): Promise<DateRangeVo> {
@@ -60,7 +62,8 @@ export class DateRangeService implements IDateRangeService {
     return new DateRangeVo(
       drFound._id.toString(),
       drFound.dates,
-      drFound.state
+      drFound.state,
+      drFound.guides
     );
   }
 }

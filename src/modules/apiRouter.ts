@@ -8,6 +8,7 @@ import cancellationPolicyRouter from "./cancellationPolicy/router/cancellationPo
 import touristDestinationRouter from "./touristDestination/router/touristDestinationRouter";
 import tourPackageRouter from "./tourPackage/router/tourPackageRouter";
 import dateRangeRouter from "./dateRange/router/dateRangeRouter";
+import bookingRouter from "./booking/router/bookingRouter";
 
 const apiRouter: Router = Router();
 
@@ -20,5 +21,6 @@ apiRouter.use("/v1", cancellationPolicyRouter);
 apiRouter.use("/v1", touristDestinationRouter);
 apiRouter.use("/v1", tourPackageRouter);
 apiRouter.use("/v1", dateRangeRouter);
+apiRouter.use("/v1", bookingRouter);
 
 export default apiRouter;
