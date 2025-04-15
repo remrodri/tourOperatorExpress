@@ -150,7 +150,7 @@ The project includes unit and integration tests for:
 - Implements error handling middleware for consistent error responses
 - Data validation with Zod ensures API input integrity
 
-## 👍 Contributing
+<!-- ## 👍 Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -164,5 +164,5 @@ The project includes unit and integration tests for:
 
 ## 📞 Contact
 
-[Your contact information]
+[Your contact information] -->
 

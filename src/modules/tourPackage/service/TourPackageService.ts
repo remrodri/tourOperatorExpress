@@ -56,9 +56,11 @@ export class TourPackageService implements ITourPackageService {
           const dateRangeDto: DateRangeDto = {
             dates: range.dates,
             state: "activo",
+            guides: range.guides,
           };
           const dateRangeVo = await this.dateRangeService.create(dateRangeDto);
-          return { id: dateRangeVo.id };
+          // return { id: dateRangeVo.id };
+          return dateRangeVo.id;
           // return dateRangeVo;
         })
       );

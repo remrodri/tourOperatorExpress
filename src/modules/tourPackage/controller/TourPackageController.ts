@@ -74,6 +74,7 @@ export class TourPackageController {
       // console.log("req.body::: ", req.body);
       const dto = TourPackageDto.parse(req.body);
       // console.log('dto::: ', dto);
+      // console.log('dto::: ', dto);
       const vo = await this.tourPackageService.createTourPackage(dto);
       // console.log('vo::: ', vo);
 

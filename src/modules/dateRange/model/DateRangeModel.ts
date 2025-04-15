@@ -5,6 +5,7 @@ const DateRangeSchema = new Schema(
   {
     dates: { type: Schema.Types.Array },
     state: { type: Schema.Types.String, default: "activo" },
+    guides: { type: Schema.Types.Array },
   },
   { timestamps: true, collection: "Date_Ranges" }
 );
