@@ -4,7 +4,7 @@ import { IUserQuestionsAnswersRepository } from "../repository/IUserQuestionsAns
 import { IAnswerService } from "./IAnswerService";
 import { IQuestionService } from "./IQuestionService";
 import { IUserQuestionsAnswersService } from "./IUserQuestionsAnswersService";
-import { IQuestion } from "../../model/recoveryPassword/question/IQuestion";
+import { IQuestion } from "../../securitySetup/model/recoveryPassword/question/IQuestion";
 
 export class UserQuestionsAnswersService
   implements IUserQuestionsAnswersService
@@ -25,8 +25,8 @@ export class UserQuestionsAnswersService
   async populateAnswer(answerId: string): Promise<any> {
     // console.log('answerId::: ', answerId);
     const answer = await this.answerService.populateAnswer(answerId);
-    console.log('answer::: ', answer);
-    
+    console.log("answer::: ", answer);
+
     return answer;
     // console.log("answerId::: ", answerId);
 

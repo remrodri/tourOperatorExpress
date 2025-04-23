@@ -1,21 +1,14 @@
 import { StatusCodes } from "http-status-codes";
 import { HttpException } from "../../../middleware/httpException";
-import { CreateUserMapper } from "../../../utils/mapper/createUserMapper";
 import { userMapper } from "../../../utils/mapper/userMapper";
-import { UserRequestDto } from "../../auth/dto/userRequestDto";
-import { UserResponseDto } from "../../auth/dto/userResponseDto";
-import { IUser } from "../../model/user/IUser";
-import { UserModel } from "../../model/user/userModel";
-// import { IRecoveryPasswordService } from "../../recoveryPassword/service/IRecoveryPasswordService";
 import { IUserQuestionsAnswersService } from "../../recoveryPassword/service/IUserQuestionsAnswersService";
-import { CreateUserDto } from "../dto/createUserDto";
 import { UpdateUserDto } from "../dto/updateUserDto";
 import { IUserRepository } from "../repository/IUserRepository";
 import { UserVo } from "../vo/userVo";
 import { IUserService } from "./IUserService";
-import bcrypt from "bcryptjs";
 import { DeleteUserDto } from "../dto/deleteUserDto";
 import { GetRandomQuestionDto } from "../../securitySetup/dto/getRandomQuestionDto";
+import { IUser } from "../model/IUser";
 
 export class UserService implements IUserService {
   private readonly userRepository: IUserRepository;
@@ -125,8 +118,8 @@ export class UserService implements IUserService {
       userUpdated.phone,
       userUpdated.firstLogin,
       userUpdated.role,
-      userUpdated.address
-      // userUpdated.imagePath
+      userUpdated.address,
+      `${process.env.BASE_URL}${userUpdated.imagePath}`
     );
     return userVo;
     // throw new Error("Method not implemented.");
@@ -165,15 +158,16 @@ export class UserService implements IUserService {
       userUpdated.email,
       userUpdated.firstLogin,
       userUpdated.role,
-      userUpdated.address
-      // userUpdated.imagePath
+      userUpdated.address,
+      `${process.env.BASE_URL}${userUpdated.imagePath}`
     );
-    return {
-      ...userVo,
-      imageUrl: userUpdated.imagePath
-        ? `${process.env.BASE_URL}/uploads/perfilImage/${userUpdated.imagePath}`
-        : null,
-    };
+    // return {
+    //   ...userVo,
+    //   imageUrl: userUpdated.imagePath
+    //     ? `${process.env.BASE_URL}/uploads/perfilImage/${userUpdated.imagePath}`
+    //     : null,
+    // };
+    return userVo;
   }
 
   async getAllUsers(): Promise<any[]> {

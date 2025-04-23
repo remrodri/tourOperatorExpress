@@ -1,12 +1,12 @@
-import { AnswerModel } from "../../model/recoveryPassword/answer/answerModel";
-import { IAnswer } from "../../model/recoveryPassword/answer/IAnswer";
+import { AnswerModel } from "../../securitySetup/model/recoveryPassword/answer/answerModel";
+import { IAnswer } from "../../securitySetup/model/recoveryPassword/answer/IAnswer";
 import { IAnswerRepository } from "./IAswerRepository";
 
 export class AnswerRepository implements IAnswerRepository {
   async populate(answerId: string): Promise<IAnswer | null> {
-    console.log('answerId:::>>>>>>>>>> ', answerId);
+    console.log("answerId:::>>>>>>>>>> ", answerId);
     const answer = await AnswerModel.findById(answerId);
-    console.log('answer:::>>>>>>>>>>>>> ', answer);
+    console.log("answer:::>>>>>>>>>>>>> ", answer);
     return answer;
     // throw new Error("Method not implemented.");
   }

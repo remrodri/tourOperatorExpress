@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import { HttpException } from "../../../middleware/httpException";
 import { IQuestionRepository } from "../repository/IQuestionRepository";
 import { IQuestionService } from "./IQuestionService";
-import { IQuestion } from "../../model/recoveryPassword/question/IQuestion";
+import { IQuestion } from "../../securitySetup/model/recoveryPassword/question/IQuestion";
 
 export class QuestionService implements IQuestionService {
   private readonly questionRepository: IQuestionRepository;

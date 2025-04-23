@@ -1,4 +1,4 @@
-import { IQuestion } from "../../model/recoveryPassword/question/IQuestion";
+import { IQuestion } from "../../securitySetup/model/recoveryPassword/question/IQuestion";
 import { QuestionIdVo } from "../vo/questionIdVo";
 
 export interface IQuestionRepository {

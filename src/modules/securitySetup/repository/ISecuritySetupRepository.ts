@@ -1,6 +1,6 @@
-import { IAnswer } from "../../model/recoveryPassword/answer/IAnswer";
-import { IQuestion } from "../../model/recoveryPassword/question/IQuestion";
-import { IUserQuestionsAnswers } from "../../model/recoveryPassword/userQuestionsAnswers/IUserQuestionsAnswers";
+import { IAnswer } from "../model/recoveryPassword/answer/IAnswer";
+import { IQuestion } from "../model/recoveryPassword/question/IQuestion";
+import { IUserQuestionsAnswers } from "../model/recoveryPassword/userQuestionsAnswers/IUserQuestionsAnswers";
 import { IUser } from "../../model/user/IUser";
 import { GetRandomQuestionDto } from "../dto/getRandomQuestionDto";
 import { UpdateAnswersDto } from "../dto/updateAnswersDto";

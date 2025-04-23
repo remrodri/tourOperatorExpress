@@ -1,4 +1,4 @@
-import { ITourType } from "src/modules/model/tourType/ITourType";
+import { ITourType } from "src/modules/tourType/model/tourType/ITourType";
 import { CreateTourTypeDto } from "../dto/createTourTypeDto";
 import { TourTypeVo } from "../vo/TourTypeVo";
 
