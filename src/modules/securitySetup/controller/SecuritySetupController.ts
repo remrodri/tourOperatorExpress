@@ -23,8 +23,8 @@ export class SecuritySetupController {
     // console.log("req.body::: ", req.body);
     try {
       const isSecurityAnswerCorrect =
-      await this.securitySetupService.checkSecurityAnswer(req.body);
-      console.log('isSecurityAnswerCorrect::: ', isSecurityAnswerCorrect);
+        await this.securitySetupService.checkSecurityAnswer(req.body);
+      console.log("isSecurityAnswerCorrect::: ", isSecurityAnswerCorrect);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
         .setMessage("respuesta correcta")
@@ -43,7 +43,7 @@ export class SecuritySetupController {
       const { email } = req.body;
       // const user = await this.userService.findUserByEmail(email);
       const user = await this.securitySetupService.findUserByEmail(email);
-      console.log('user::: ', user);
+      console.log("user::: ", user);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
         .setMessage("El usuario existe")

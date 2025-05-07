@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response, response } from "express";
 import { CreateBookingDto } from "../dto/CreateBookingDto";
 import { IBookingService } from "../service/IBookingService";
 import { ApiResponseBuilder } from "../../../utils/response/apiResponseBuilder";
@@ -36,7 +36,13 @@ export class BookingController {
     next: NextFunction
   ): Promise<void> {
     try {
-      console.log("getAll::: ");
+      const vos = await this.bookingService.getAll();
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setData(vos)
+        .setMessage("Bookings found succesfully")
+        .build();
+      res.status(StatusCodes.OK).json(response);
     } catch (error) {
       next(error);
     }

@@ -3,10 +3,11 @@ import { CreateBookingDto } from "../dto/CreateBookingDto";
 import { BookingVo } from "../vo/BookingVo";
 import { IBookingService } from "./IBookingService";
 import { IPaymentService } from "src/modules/payment/service/IPaymentService";
-import mongoose from "mongoose";
+import mongoose, { ClientSession } from "mongoose";
 import { IBookingRepository } from "../repository/IBookingRepository";
 import { CreatePaymentDto } from "../../payment/dto/CreatePaymentDto";
 import { IBooking } from "../model/IBooking";
+import { UpdateBookingDto } from "../dto/UpdateBookingDto";
 // import { CreateTouristDto } from '../../tourist/dto/CreateTouristDto';
 
 export class BookingService implements IBookingService {
@@ -23,14 +24,58 @@ export class BookingService implements IBookingService {
     this.paymentService = paymentService;
     this.bookingRepository = bookingRespository;
   }
+  async update(
+    id: string,
+    bookingData: Partial<UpdateBookingDto>,
+    session: ClientSession
+  ): Promise<BookingVo> {
+    try {
+      const bookingDoc = await this.bookingRepository.getByIdDB(id, session);
+      if (!bookingDoc) {
+        throw new Error("Booking not found");
+      }
+      const updatedBookingDoc = await this.bookingRepository.updateDB(
+        id,
+        bookingData,
+        session
+      );
+      return this.mapToVo(updatedBookingDoc);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Error al actualizar el booking: ${error.message}`);
+      } else {
+        throw new Error("Error desconocido al actualizar el booking");
+      }
+    }
+  }
+
+  async getAll(): Promise<BookingVo[]> {
+    try {
+      const bookingDocs = await this.bookingRepository.getAllDB();
+      if (!bookingDocs || bookingDocs.length === 0) {
+        return [];
+      }
+      const bookingVos = bookingDocs.map((booking) => this.mapToVo(booking));
+      console.log("bookingVos::: ", bookingVos);
+      return bookingVos;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Error al obtener booings: ${error.message}`);
+      } else {
+        throw new Error("Error desconocido al obtener bookings");
+      }
+    }
+  }
   private mapToVo(bookingDoc: IBooking): BookingVo {
     return new BookingVo(
       bookingDoc._id.toString(),
-      bookingDoc.additionalTourists.map((tourist) => tourist._id.toString()),
+      // bookingDoc.additionalTouristIds.map((tourist) => tourist._id.toString()),
+      bookingDoc.additionalTouristIds.map((tourist) => tourist._id.toString()),
       bookingDoc.dateRangeId.toString(),
       bookingDoc.mainTouristId.toString(),
       bookingDoc.notes,
-      [],
+      bookingDoc.paymentIds.map((payment) => payment._id.toString()),
+      // [],
       bookingDoc.sellerId._id.toString(),
       bookingDoc.status,
       bookingDoc.totalPrice,
@@ -38,7 +83,6 @@ export class BookingService implements IBookingService {
     );
   }
   async create(bookingDto: CreateBookingDto): Promise<BookingVo> {
-
     try {
       return await this.bookingRepository.createWithTransaction(
         async (session) => {
@@ -50,19 +94,25 @@ export class BookingService implements IBookingService {
             bookingDto.mainTourist,
             session
           );
-          
+
           const additionalTouristVos = await Promise.all(
-            (bookingDto.additionalTourists||[]).map(async (tourist) => {
+            bookingDto.additionalTourists.map(async (tourist) => {
               return await this.touristService.create(tourist, session);
             })
           );
 
+          const additionalTouristIds = additionalTouristVos.map((tourist) => {
+            return tourist.id;
+          });
+          // await this.bookingRepository.updateDB()
+
           const bookingData = {
             dateRangeId: bookingDto.dateRangeId,
             mainTouristId: mainTouristVo.id,
-            additionalTouristIds: additionalTouristVos.map(
-              (tourist) => tourist.id
-            ),
+            additionalTouristIds: additionalTouristIds,
+            // additionalTouristIds: additionalTouristVos.map(
+            //   (tourist) => tourist.id
+            // ),
             notes: bookingDto.notes,
             sellerId: bookingDto.sellerId,
             status: bookingDto.status,
@@ -80,8 +130,19 @@ export class BookingService implements IBookingService {
             { ...paymentDto, bookingId: booking?.id },
             session
           );
-          // console.log('paymentVo::: ', paymentVo);
 
+          await this.bookingRepository.updateDB(
+            booking.id,
+            {
+              $push: { paymentIds: paymentVo.id },
+            } as mongoose.UpdateQuery<IBooking>,
+            session
+          );
+          // console.log('paymentVo::: ', paymentVo);
+          const updatedBooking = await this.bookingRepository.getByIdDB(
+            booking.id,
+            session
+          );
 
           await this.touristService.addBookingToTourist(
             mainTouristVo.id,
@@ -97,9 +158,10 @@ export class BookingService implements IBookingService {
           }
           // console.log('booking::: ', booking);
 
-          const bookingVo = this.mapToVo(booking);
+          // const bookingVo = this.mapToVo(booking);
           // console.log('bookingVo::: ', bookingVo);
-          return {...bookingVo,paymentIds:[paymentVo.id]}
+          // return { ...bookingVo, paymentIds: [paymentVo.id] };
+          return this.mapToVo(updatedBooking);
           // return this.mapToVo(booking);
         }
       );
@@ -112,7 +174,7 @@ export class BookingService implements IBookingService {
       // );
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(`Error al crear booing: ${error.message}`);
+        throw new Error(`Error al crear booking: ${error.message}`);
       } else {
         throw new Error("Error desconocido al crear booking");
       }

@@ -21,11 +21,11 @@ const bookingService = new BookingService(
 );
 const bookingController = new BookingController(bookingService);
 
-bookingRouter.post("/booking", (req, res, next) =>
+bookingRouter.post("/bookings", (req, res, next) =>
   bookingController.createBooking(req, res, next)
 );
 
-bookingRouter.get("/booking", (req, res, next) =>
+bookingRouter.get("/bookings", (req, res, next) =>
   bookingController.getAllBookings(req, res, next)
 );
 export default bookingRouter;

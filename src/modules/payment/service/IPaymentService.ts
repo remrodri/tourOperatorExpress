@@ -4,6 +4,7 @@ import { PaymentVo } from "../vo/PaymentVo";
 import mongoose, { ClientSession } from "mongoose";
 
 export interface IPaymentService {
+  getAll(): Promise<PaymentVo[]>;
   create(
     dto: CreatePaymentDto,
     session?: mongoose.ClientSession

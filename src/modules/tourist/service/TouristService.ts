@@ -6,12 +6,28 @@ import { HttpException } from "../../../middleware/httpException";
 import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
 import { ITourist } from "../model/ITourist";
+import { UpdateTouristDto } from "../dto/UpdateTourist";
 
 export class TouristService implements ITouristService {
   private readonly touristRepository: ITouristRepository;
 
   constructor(touristRepository: ITouristRepository) {
     this.touristRepository = touristRepository;
+  }
+  async update(
+    id: string,
+    tourist: UpdateTouristDto,
+    session: mongoose.ClientSession
+  ): Promise<TouristVo> {
+    throw new Error("Method not implemented.");
+  }
+
+  async getAll(): Promise<TouristVo[]> {
+    const touristDocs = await this.touristRepository.getAllDB();
+    if (!touristDocs || touristDocs.length === 0) {
+      return [];
+    }
+    return touristDocs.map((tourist) => this.mapToVo(tourist));
   }
   mapToVo(tourist: ITourist): TouristVo {
     return new TouristVo(

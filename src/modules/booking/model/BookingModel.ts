@@ -3,7 +3,7 @@ import { IBooking } from "./IBooking";
 
 const BookingSchema: Schema = new Schema(
   {
-    additionalTourists: [
+    additionalTouristIds: [
       {
         type: Schema.Types.ObjectId,
         ref: "Tourist",
@@ -23,7 +23,7 @@ const BookingSchema: Schema = new Schema(
       type: Schema.Types.String,
       trim: true,
     },
-    paymentsIds: [
+    paymentIds: [
       {
         type: Schema.Types.ObjectId,
         ref: "Payment",

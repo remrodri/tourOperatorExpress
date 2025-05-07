@@ -10,12 +10,16 @@ export class PaymentService implements IPaymentService {
   constructor(paymentRepository: IPaymentRepository) {
     this.paymentRepository = paymentRepository;
   }
+  async getAll(): Promise<PaymentVo[]> {
+    const paymentDocs = await this.paymentRepository.getAllDB();
+    return paymentDocs.map((payment) => this.mapToVo(payment));
+  }
   mapToVo(payment: IPayment): PaymentVo {
     return new PaymentVo(
       payment._id.toString(),
       payment.amount,
       payment.paymentDate,
-      payment.paymentDate,
+      payment.paymentMethod,
       payment.transactionId,
       payment.bookingId.toString()
     );

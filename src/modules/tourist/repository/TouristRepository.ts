@@ -3,8 +3,28 @@ import { CreateTouristDto } from "../dto/CreateTouristDto";
 import { ITourist } from "../model/ITourist";
 import { TouristModel } from "../model/TouristModel";
 import { ITouristRepository } from "./ITouristRepository";
+import { UpdateTouristDto } from "../dto/UpdateTourist";
 
 export class TouristRepository implements ITouristRepository {
+  async updateDB(
+    id: string,
+    tourist: Partial<UpdateTouristDto>,
+    session?: mongoose.ClientSession
+  ): Promise<ITourist | null> {
+    const options: QueryOptions = { new: true };
+    // return await TouristModel.findByIdAndUpdate(id, tourist, options);
+    if (session) options["session"] = session;
+    const updatedTourist = await TouristModel.findByIdAndUpdate(
+      id,
+      tourist,
+      options
+    );
+    return updatedTourist;
+  }
+
+  async getAllDB(): Promise<ITourist[]> {
+    return await TouristModel.find().exec();
+  }
   async addBookingToTourist(
     touristId: string,
     bookingId: string,
@@ -12,7 +32,6 @@ export class TouristRepository implements ITouristRepository {
   ): Promise<void> {
     const options: QueryOptions = { new: true };
     if (session) options["session"] = session;
-
     const updatedTourist = await TouristModel.findByIdAndUpdate(
       touristId,
       {
@@ -33,11 +52,11 @@ export class TouristRepository implements ITouristRepository {
     session?: mongoose.ClientSession
   ): Promise<ITourist> {
     const tourist = new TouristModel({ ...dto, bookingIds: [] });
-    
+
     const savedTourist = session
-    ? await tourist.save({ session })
-    : await tourist.save();
-    
+      ? await tourist.save({ session })
+      : await tourist.save();
+
     return savedTourist;
     // return await tourist.save();
   }
