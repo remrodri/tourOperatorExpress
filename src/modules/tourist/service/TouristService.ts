@@ -40,7 +40,8 @@ export class TouristService implements ITouristService {
       tourist.documentType,
       tourist.ci,
       tourist.passportNumber,
-      tourist.dateOfBirth
+      tourist.dateOfBirth,
+      tourist.bookingIds
     );
   }
   async addBookingToTourist(

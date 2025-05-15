@@ -5,6 +5,7 @@ import { IBookingRepository } from "./IBookingRepository";
 import { BookingModel } from "../model/BookingModel";
 import mongoose, { QueryOptions } from "mongoose";
 import { UpdateBookingDto } from "../dto/UpdateBookingDto";
+import { BookingCreatedVo } from "../vo/BookignCreatedVo";
 
 export class BookingRepository implements IBookingRepository {
   async getByIdDB(
@@ -66,6 +67,25 @@ export class BookingRepository implements IBookingRepository {
   async createWithTransaction(
     createBookingFn: (session: mongoose.ClientSession) => Promise<BookingVo>
   ): Promise<BookingVo> {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      const booking = await createBookingFn(session);
+      await session.commitTransaction();
+      return booking;
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  }
+
+  async createWithTransaction2(
+    createBookingFn: (
+      session: mongoose.ClientSession
+    ) => Promise<BookingCreatedVo>
+  ): Promise<BookingCreatedVo> {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {

@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { CreateBookingDto } from "../dto/CreateBookingDto";
 import { IBooking } from "../model/IBooking";
 import { BookingVo } from "../vo/BookingVo";
+import { BookingCreatedVo } from "../vo/BookignCreatedVo";
 
 export interface IBookingRepository {
   getByIdDB(id: string, session?: mongoose.ClientSession): Promise<IBooking>;
@@ -15,6 +16,9 @@ export interface IBookingRepository {
   createWithTransaction(
     createBookingFn: (session?: mongoose.ClientSession) => Promise<BookingVo>
   ): Promise<BookingVo>;
+  createWithTransaction2(
+    createBookingFn: (session?: mongoose.ClientSession) => Promise<BookingCreatedVo>
+  ): Promise<BookingCreatedVo>;
 
   // mapToVo(bookingDoc: IBooking): BookingVo;
 }

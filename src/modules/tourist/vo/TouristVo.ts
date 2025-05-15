@@ -11,5 +11,6 @@ export class TouristVo {
     public readonly passportNumber: string,
     public readonly dateOfBirth: string,
     // public readonly status: string
+    public readonly bookingIds: string[]
   ) {}
 }

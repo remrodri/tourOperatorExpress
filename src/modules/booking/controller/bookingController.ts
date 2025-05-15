@@ -18,7 +18,7 @@ export class BookingController {
       // console.log("req::: ", req.body);
       const dto = CreateBookingDto.parse(req.body);
       // console.log('dto::: ', dto);
-      const vo = await this.bookingService.create(dto);
+      const vo = await this.bookingService.createAllData(dto);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
         .setData(vo)
