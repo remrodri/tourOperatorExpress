@@ -11,7 +11,7 @@ export class RoleController {
   }
 
   async createRole(req: Request, res: Response, next: NextFunction) {
-    console.log('req.body::: ', req.body);
+    // console.log('req.body::: ', req.body);
   }
   async getAllRoles(req: Request, res: Response, next: NextFunction) {
     try {

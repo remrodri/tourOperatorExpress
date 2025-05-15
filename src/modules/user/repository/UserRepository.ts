@@ -1,5 +1,5 @@
-import { IUser } from "../../model/user/IUser";
-import { UserModel } from "../../model/user/userModel";
+import { IUser } from "../model/IUser";
+import { UserModel } from "../model/userModel";
 // import { IRecoveryPasswordService } from "../../recoveryPassword/service/IRecoveryPasswordService";
 import { CreateUserDto } from "../dto/createUserDto";
 import { DeleteUserDto } from "../dto/deleteUserDto";

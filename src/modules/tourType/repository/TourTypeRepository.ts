@@ -1,7 +1,7 @@
-import { ITourType } from "src/modules/model/tourType/ITourType";
+import { ITourType } from "src/modules/tourType/model/tourType/ITourType";
 import { CreateTourTypeDto } from "../dto/createTourTypeDto";
 import { ITourTypeRepository } from "./ITourTypeRepository";
-import { TourTypeModel } from "../../model/tourType/tourTypeModel";
+import { TourTypeModel } from "../model/tourType/tourTypeModel";
 import { TourTypeVo } from "../vo/TourTypeVo";
 
 export class TourTypeRepository implements ITourTypeRepository {

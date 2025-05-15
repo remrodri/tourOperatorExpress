@@ -9,6 +9,6 @@ export class UserVo {
     public readonly firstLogin: boolean,
     public readonly role: string,
     public readonly address: string,
-    // public readonly imageUrl: string
+    public readonly imageUrl: string
   ) {}
 }

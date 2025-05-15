@@ -1,4 +1,4 @@
-import { IQuestion } from "../../model/recoveryPassword/question/IQuestion";
+import { IQuestion } from "../../securitySetup/model/recoveryPassword/question/IQuestion";
 
 export interface IUserQuestionsAnswersService {
   createUserQuestionsAnswers(
