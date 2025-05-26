@@ -9,6 +9,27 @@ export class BookingController {
   constructor(bookingService: IBookingService) {
     this.bookingService = bookingService;
   }
+
+  async updateBooking(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    console.log('req.body::: ', req.body);
+    // try {
+    //   const dto = UpdateBookingDto.parse(req.body);
+    //   const vo = await this.bookingService.updateAllData(dto);
+    //   const response = new ApiResponseBuilder()
+    //     .setStatusCode(StatusCodes.OK)
+    //     .setData(vo)
+    //     .setMessage("booking updated successfully")
+    //     .build();
+    //   res.status(StatusCodes.OK).json(response);
+    // } catch (error) {
+    //   next(error);
+    // }
+  }
+
   async createBooking(
     req: Request,
     res: Response,
