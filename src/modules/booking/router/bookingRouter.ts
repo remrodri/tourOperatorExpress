@@ -28,4 +28,8 @@ bookingRouter.post("/bookings", (req, res, next) =>
 bookingRouter.get("/bookings", (req, res, next) =>
   bookingController.getAllBookings(req, res, next)
 );
+
+bookingRouter.put("/bookings/:id", (req, res, next) =>
+  bookingController.updateBooking(req, res, next)
+);
 export default bookingRouter;

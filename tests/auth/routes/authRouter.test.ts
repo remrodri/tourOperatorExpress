@@ -2,7 +2,7 @@ import request from "supertest";
 import bcrypt from "bcryptjs";
 import app from "../../../src/app";
 import mongoose from "mongoose";
-import { UserModel } from "../../../src/modules/model/user/userModel";
+import { UserModel } from "../../../src/modules/user/model/userModel";
 
 jest.unmock("@repository/authRepository.ts");
 
