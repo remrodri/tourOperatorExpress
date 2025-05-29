@@ -6,6 +6,12 @@ import { ITouristRepository } from "./ITouristRepository";
 import { UpdateTouristDto } from "../dto/UpdateTourist";
 
 export class TouristRepository implements ITouristRepository {
+  updateWithoutSessionDB(id: string, tourist: Partial<UpdateTouristDto>): Promise<ITourist | null> {
+    return TouristModel.findByIdAndUpdate(id, tourist, { new: true }).exec();
+  }
+  getByIdDB(id: string): Promise<ITourist | null> {
+    return TouristModel.findById(id).exec();
+  }
   async updateDB(
     id: string,
     tourist: Partial<UpdateTouristDto>,
@@ -19,6 +25,9 @@ export class TouristRepository implements ITouristRepository {
       tourist,
       options
     );
+    if (!updatedTourist) {
+      throw new Error(`Turista con ID ${id} no encontrado`);
+    }
     return updatedTourist;
   }
 
@@ -29,7 +38,7 @@ export class TouristRepository implements ITouristRepository {
     touristId: string,
     bookingId: string,
     session?: mongoose.ClientSession
-  ): Promise<void> {
+  ): Promise<ITourist | null> {
     const options: QueryOptions = { new: true };
     if (session) options["session"] = session;
     const updatedTourist = await TouristModel.findByIdAndUpdate(
@@ -42,6 +51,7 @@ export class TouristRepository implements ITouristRepository {
     if (!updatedTourist) {
       throw new Error(`Turista con ID ${touristId} no encontrado`);
     }
+    return updatedTourist;
   }
   async findByEmail(email: string): Promise<ITourist | null> {
     const tourist = await TouristModel.findOne({ email });
@@ -52,11 +62,13 @@ export class TouristRepository implements ITouristRepository {
     session?: mongoose.ClientSession
   ): Promise<ITourist> {
     const tourist = new TouristModel({ ...dto, bookingIds: [] });
+    console.log('tourist::: ', tourist);
 
     const savedTourist = session
-      ? await tourist.save({ session })
-      : await tourist.save();
-
+    ? await tourist.save({ session })
+    : await tourist.save();
+    
+    console.log('savedTourist::: ', savedTourist);
     return savedTourist;
     // return await tourist.save();
   }

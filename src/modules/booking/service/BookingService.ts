@@ -8,9 +8,11 @@ import { IBookingRepository } from "../repository/IBookingRepository";
 import { CreatePaymentDto } from "../../payment/dto/CreatePaymentDto";
 import { IBooking } from "../model/IBooking";
 import { UpdateBookingDto } from "../dto/UpdateBookingDto";
+import { UpdateAllDataBookingDto } from "../dto/UpdateAllDataBooking";
 import { BookingCreatedVo } from "../vo/BookignCreatedVo";
 import { TouristVo } from "src/modules/tourist/vo/TouristVo";
 import { PaymentVo } from "src/modules/payment/vo/PaymentVo";
+import { BookingUpdatedVo } from "../vo/BookingUpdatedVo";
 // import { CreateTouristDto } from '../../tourist/dto/CreateTouristDto';
 
 export class BookingService implements IBookingService {
@@ -27,9 +29,112 @@ export class BookingService implements IBookingService {
     this.paymentService = paymentService;
     this.bookingRepository = bookingRespository;
   }
-  // createAllData(dto: CreateBookingDto): Promise<BookingCreatedVo> {
-  //   throw new Error("Method not implemented.");
-  // }
+  async updateAllData(dto: UpdateAllDataBookingDto): Promise<BookingUpdatedVo> {
+    try {
+      const booking = await this.bookingRepository.updateWithTransaction(
+        async (session) => {
+          if (!session) {
+            throw new Error("Session is required for transaction");
+          }
+          const bookingDoc = await this.bookingRepository.getByIdDB(
+            dto.id,
+            session
+          );
+          if (!bookingDoc) {
+            throw new Error("Booking not found");
+          }
+          const mainTouristVo = await this.touristService.getById(
+            dto.mainTourist.id
+          );
+          if (!mainTouristVo) {
+            throw new Error("Main tourist not found");
+          }
+          const mainTouristUpdated = await this.touristService.update(
+            dto.mainTourist.id,
+            dto.mainTourist,
+            session
+          );
+          if (!mainTouristUpdated) {
+            throw new Error("Main tourist update returned null or undefined");
+          }
+          // console.log('dto.additionalTourists::: ', dto.additionalTourists);
+          const additionalTouristUpdated = await Promise.all(
+            dto.additionalTourists
+            .map(async (tourist) => {
+              return tourist.id
+              ? await this.touristService.update(
+                tourist.id,
+                tourist,
+                session
+              )
+              : await this.touristService.create(
+                tourist,
+                session
+              )
+            })
+          );
+          const additionalTouristUpdatedFiltered = additionalTouristUpdated.filter((tourist) => tourist !== null);
+          if (!additionalTouristUpdatedFiltered) {
+            throw new Error("Additional tourist update returned null or undefined");
+          }
+
+          const additionalTouristsWithBookingIds = await Promise.all(
+            additionalTouristUpdatedFiltered.map(async (tourist) => {
+              return await this.touristService.addBookingToTourist(
+                tourist.id,
+                dto.id,
+                session
+              )
+            })
+          );
+
+          const bookingData = {
+            dateRangeId: dto.dateRangeId,
+            mainTouristId: mainTouristUpdated.id,
+            additionalTouristIds: additionalTouristUpdatedFiltered.map((tourist) => tourist?.id),
+            notes: dto.notes,
+            sellerId: dto.sellerId,
+            status: dto.status,
+            totalPrice: dto.totalPrice,
+            tourPackageId: dto.tourPackageId,
+          }
+          const updatedBookingDoc = await this.bookingRepository.updateDB(
+            dto.id,
+            bookingData,
+            session
+          );
+          return this.mapToUpdatedVo(updatedBookingDoc, mainTouristUpdated, additionalTouristsWithBookingIds);
+        }
+      );
+      return booking;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Error al actualizar el booking: ${error.message}`);
+      } else {
+        throw new Error("Error desconocido al actualizar el booking");
+      }
+    }
+  }
+  mapToUpdatedVo(
+    updatedBookingDoc: IBooking, 
+    maintouristVo: TouristVo, 
+    additionalTouristVos: TouristVo[]
+  ): BookingUpdatedVo | PromiseLike<BookingUpdatedVo> {
+    return new BookingUpdatedVo(
+      updatedBookingDoc._id.toString(),
+      additionalTouristVos,
+      updatedBookingDoc.dateRangeId.toString(),
+      maintouristVo,
+      updatedBookingDoc.notes,
+      updatedBookingDoc.sellerId._id.toString(),
+      updatedBookingDoc.status,
+      updatedBookingDoc.totalPrice,
+      updatedBookingDoc.tourPackageId._id.toString(),
+      // updatedBookingDoc.paymentIds.map((payment) => payment._id.toString()),
+
+    );
+  }
+
 
   async update(
     id: string,
@@ -63,7 +168,7 @@ export class BookingService implements IBookingService {
         return [];
       }
       const bookingVos = bookingDocs.map((booking) => this.mapToVo(booking));
-      console.log("bookingVos::: ", bookingVos);
+      // console.log("bookingVos::: ", bookingVos);
       return bookingVos;
     } catch (error) {
       if (error instanceof Error) {

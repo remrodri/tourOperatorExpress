@@ -14,12 +14,42 @@ export class TouristService implements ITouristService {
   constructor(touristRepository: ITouristRepository) {
     this.touristRepository = touristRepository;
   }
+  async getById(id: string): Promise<TouristVo | null> {
+    const tourist = await this.touristRepository.getByIdDB(id);
+    if (!tourist) {
+      return null;
+    }
+    return this.mapToVo(tourist);
+  }
   async update(
     id: string,
     tourist: UpdateTouristDto,
     session: mongoose.ClientSession
-  ): Promise<TouristVo> {
-    throw new Error("Method not implemented.");
+  ): Promise<TouristVo|null> {
+    try {
+      if (!session) {
+        throw new Error("Session is required for transaction");
+      }
+      const existingTourist = await this.touristRepository.getByIdDB(id);
+      if (!existingTourist) {
+        throw new Error("Tourist not found");
+      }
+      const updatedTouristDoc = await this.touristRepository.updateDB(
+        id,
+        tourist,
+        session
+      );
+      if (!updatedTouristDoc) {
+        throw new Error("Tourist update returned null or undefined");
+      }
+      return this.mapToVo(updatedTouristDoc);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Error al actualizar el turista: ${error.message}`);
+      } else {
+        throw new Error("Error desconocido al actualizar el turista");
+      }
+    }
   }
 
   async getAll(): Promise<TouristVo[]> {
@@ -48,13 +78,17 @@ export class TouristService implements ITouristService {
     touristId: string,
     bookingId: string,
     session: any
-  ): Promise<void> {
+  ): Promise<TouristVo> {
     try {
-      await this.touristRepository.addBookingToTourist(
+      const updatedTouristDoc = await this.touristRepository.addBookingToTourist(
         touristId,
         bookingId,
         session
       );
+      if (!updatedTouristDoc) {
+        throw new Error("Tourist update returned null or undefined");
+      }
+      return this.mapToVo(updatedTouristDoc);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Error al crear el turista ${error.message}`);

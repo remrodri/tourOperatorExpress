@@ -4,7 +4,7 @@ import { TouristDestinationDto } from "../dto/TouristDestinationDto";
 import { ApiResponseBuilder } from "../../../utils/response/apiResponseBuilder";
 import { StatusCodes } from "http-status-codes";
 import { UpdateTouristDestinationDto } from "../dto/updateTouristDestinationDto";
-import { DeleteTouristDestinationDto } from "../dto/deleteTouristDestinationDto";
+import { DeleteTouristDestinationDto } from "../dto/DeleteTouristDestinationDto";
 
 export class TouristDestinationController {
   private readonly touristDestinationService: ITouristDestinationService;

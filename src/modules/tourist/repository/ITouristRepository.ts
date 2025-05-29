@@ -4,6 +4,11 @@ import { ITourist } from "../model/ITourist";
 import { UpdateTouristDto } from "../dto/UpdateTourist";
 
 export interface ITouristRepository {
+  updateWithoutSessionDB(
+    id: string,
+    tourist: Partial<UpdateTouristDto>
+  ): Promise<ITourist | null>;
+  getByIdDB(id: string): Promise<ITourist | null>;
   updateDB(
     id: string,
     tourist: Partial<UpdateTouristDto>,
@@ -14,7 +19,7 @@ export interface ITouristRepository {
     touristId: string,
     bookingId: string,
     session?: mongoose.ClientSession
-  ): Promise<void>;
+  ): Promise<ITourist | null>;
   createDB(
     dto: CreateTouristDto,
     session?: mongoose.ClientSession
