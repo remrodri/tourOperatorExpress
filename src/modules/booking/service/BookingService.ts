@@ -77,6 +77,7 @@ export class BookingService implements IBookingService {
           if (!additionalTouristUpdatedFiltered) {
             throw new Error("Additional tourist update returned null or undefined");
           }
+          console.log('additionalTouristUpdatedFiltered::: ', additionalTouristUpdatedFiltered);
 
           const additionalTouristsWithBookingIds = await Promise.all(
             additionalTouristUpdatedFiltered.map(async (tourist) => {
