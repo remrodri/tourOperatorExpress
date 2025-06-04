@@ -53,7 +53,6 @@ export class BookingRepository implements IBookingRepository {
   ): Promise<IBooking> {
     const options: QueryOptions = { new: true };
     if (session) options["session"] = session;
-
     const updatedBooking = await BookingModel.findByIdAndUpdate(
       id,
       updateData,

@@ -32,6 +32,7 @@ export const UpdateBookingDto = z.object({
   status: z.string().default("pending"),
   totalPrice: z.number().optional(),
   tourPackageId: z.string().optional(),
+  paymentIds: z.array(z.string()).optional(),
 });
 
 export type UpdateBookingDto = z.infer<typeof UpdateBookingDto>;

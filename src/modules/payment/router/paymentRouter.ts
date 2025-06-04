@@ -1,17 +1,18 @@
 import { Router } from "express";
 
-import { PaymentService } from "../service/PaymentService";
-import { PaymentRepository } from "../repository/PaymentRepository";
+import { container } from "../../../shared/container";
 import { PaymentController } from "../controller/PaymentController";
 
 const paymentRouter = Router();
 
-const paymentRepository = new PaymentRepository();
-const paymentService = new PaymentService(paymentRepository);
-const paymentController = new PaymentController(paymentService);
+const paymentController: PaymentController = container.get('paymentController');
 
 paymentRouter.get("/payments", (req, res, next) =>
   paymentController.getAllPayments(req, res, next)
+);
+
+paymentRouter.post("/payments", (req, res, next) =>
+  paymentController.createPayment(req, res, next)
 );
 
 export default paymentRouter;

@@ -1,13 +1,15 @@
 import { CreatePaymentDto } from "../dto/CreatePaymentDto";
 import { IPayment } from "../model/IPayment";
 import { PaymentVo } from "../vo/PaymentVo";
-import mongoose, { ClientSession } from "mongoose";
+import { ClientSession } from "mongoose";
 
 export interface IPaymentService {
+  createSinglePayment(dto:CreatePaymentDto):Promise<PaymentVo>
+  
   getAll(): Promise<PaymentVo[]>;
   create(
     dto: CreatePaymentDto,
-    session?: mongoose.ClientSession
+    session?: ClientSession
   ): Promise<PaymentVo>;
   mapToVo(payment: IPayment): PaymentVo;
 }

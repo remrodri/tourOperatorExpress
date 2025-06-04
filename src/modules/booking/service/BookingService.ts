@@ -29,6 +29,21 @@ export class BookingService implements IBookingService {
     this.paymentService = paymentService;
     this.bookingRepository = bookingRespository;
   }
+  async getById(id: string, session?: ClientSession): Promise<BookingVo> {
+try {
+  const bookingDoc = await this.bookingRepository.getByIdDB(id, session);
+  if (!bookingDoc) {
+    throw new Error("Booking not found");
+  }
+  return this.mapToVo(bookingDoc);
+} catch (error) {
+  if (error instanceof Error) {
+    throw new Error(`Error al obtener booking: ${error.message}`);
+  } else {
+    throw new Error("Error desconocido al obtener booking");
+  }
+}
+  }
   async updateAllData(dto: UpdateAllDataBookingDto): Promise<BookingUpdatedVo> {
     try {
       const booking = await this.bookingRepository.updateWithTransaction(
@@ -142,16 +157,19 @@ export class BookingService implements IBookingService {
     bookingData: Partial<UpdateBookingDto>,
     session: ClientSession
   ): Promise<BookingVo> {
+    console.log('bookingDatadeUpdate::: ', bookingData);
     try {
       const bookingDoc = await this.bookingRepository.getByIdDB(id, session);
       if (!bookingDoc) {
         throw new Error("Booking not found");
       }
+      console.log('bookingDoc::: ', bookingDoc);
       const updatedBookingDoc = await this.bookingRepository.updateDB(
         id,
         bookingData,
         session
       );
+      console.log('updatedBookingDoc::: ', updatedBookingDoc);
       return this.mapToVo(updatedBookingDoc);
     } catch (error) {
       if (error instanceof Error) {
@@ -194,91 +212,6 @@ export class BookingService implements IBookingService {
       bookingDoc.totalPrice,
       bookingDoc.tourPackageId._id.toString()
     );
-  }
-  async create(bookingDto: CreateBookingDto): Promise<BookingVo> {
-    try {
-      return await this.bookingRepository.createWithTransaction(
-        async (session) => {
-          if (!session) {
-            throw new Error("Session is required for transaction");
-          }
-
-          const mainTouristVo = await this.touristService.create(
-            bookingDto.mainTourist,
-            session
-          );
-
-          const additionalTouristVos = await Promise.all(
-            bookingDto.additionalTourists.map(async (tourist) => {
-              return await this.touristService.create(tourist, session);
-            })
-          );
-
-          const additionalTouristIds = additionalTouristVos.map((tourist) => {
-            return tourist.id;
-          });
-          // await this.bookingRepository.updateDB()
-
-          const bookingData = {
-            dateRangeId: bookingDto.dateRangeId,
-            mainTouristId: mainTouristVo.id,
-            additionalTouristIds: additionalTouristIds,
-            // additionalTouristIds: additionalTouristVos.map(
-            //   (tourist) => tourist.id
-            // ),
-            notes: bookingDto.notes,
-            sellerId: bookingDto.sellerId,
-            status: bookingDto.status,
-            totalPrice: bookingDto.totalPrice,
-            tourPackageId: bookingDto.tourPackageId,
-          };
-          const booking = await this.bookingRepository.createDB(
-            bookingData,
-            session
-          );
-          // console.log('bookingDto.payments::: ', bookingDto.payments);
-          const paymentDto = CreatePaymentDto.parse(bookingDto.payments[0]);
-          // console.log('paymentDto::: ', paymentDto);
-          const paymentVo = await this.paymentService.create(
-            { ...paymentDto, bookingId: booking?.id },
-            session
-          );
-
-          await this.bookingRepository.updateDB(
-            booking.id,
-            {
-              $push: { paymentIds: paymentVo.id },
-            } as mongoose.UpdateQuery<IBooking>,
-            session
-          );
-          // console.log('paymentVo::: ', paymentVo);
-          const updatedBooking = await this.bookingRepository.getByIdDB(
-            booking.id,
-            session
-          );
-
-          await this.touristService.addBookingToTourist(
-            mainTouristVo.id,
-            booking?.id,
-            session
-          );
-          for (const tourist of additionalTouristVos) {
-            await this.touristService.addBookingToTourist(
-              tourist.id,
-              booking?.id,
-              session
-            );
-          }
-          return this.mapToVo(updatedBooking);
-        }
-      );
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Error al crear booking: ${error.message}`);
-      } else {
-        throw new Error("Error desconocido al crear booking");
-      }
-    }
   }
 
   async createAllData(bookingDto: CreateBookingDto): Promise<BookingCreatedVo> {
