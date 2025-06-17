@@ -200,17 +200,16 @@ try {
   private mapToVo(bookingDoc: IBooking): BookingVo {
     return new BookingVo(
       bookingDoc._id.toString(),
-      // bookingDoc.additionalTouristIds.map((tourist) => tourist._id.toString()),
-      bookingDoc.additionalTouristIds.map((tourist) => tourist._id.toString()),
+      bookingDoc.touristsIds.map((tourist) => tourist._id.toString()),
       bookingDoc.dateRangeId.toString(),
-      bookingDoc.mainTouristId.toString(),
       bookingDoc.notes,
       bookingDoc.paymentIds.map((payment) => payment._id.toString()),
-      // [],
       bookingDoc.sellerId._id.toString(),
       bookingDoc.status,
       bookingDoc.totalPrice,
-      bookingDoc.tourPackageId._id.toString()
+      bookingDoc.tourPackageId._id.toString(),
+      bookingDoc.paymentProofFolder
+      
     );
   }
 
@@ -222,26 +221,28 @@ try {
             throw new Error("Session is required for transaction");
           }
 
-          const mainTouristVo = await this.touristService.create(
-            bookingDto.mainTourist,
-            session
-          );
+          // const mainTouristVo = await this.touristService.create(
+          //   bookingDto.mainTourist,
+          //   session
+          // );
 
-          const additionalTouristVos = await Promise.all(
-            bookingDto.additionalTourists.map(async (tourist) => {
+          const touristVos = await Promise.all(
+            bookingDto.tourists.map(async (tourist) => {
               return await this.touristService.create(tourist, session);
             })
           );
 
-          const additionalTouristIds = additionalTouristVos.map((tourist) => {
-            return tourist.id;
-          });
+          // const additionalTouristIds = additionalTouristVos.map((tourist) => {
+          //   return tourist.id;
+          // });
           // await this.bookingRepository.updateDB()
 
           const bookingData = {
+            paymentProofImage: bookingDto.paymentProofImage,
             dateRangeId: bookingDto.dateRangeId,
-            mainTouristId: mainTouristVo.id,
-            additionalTouristIds: additionalTouristIds,
+            touristsIds: touristVos.map((tourist) => tourist.id),
+            // mainTouristId: mainTouristVo.id,
+            // additionalTouristIds: additionalTouristIds,
             // additionalTouristIds: additionalTouristVos.map(
             //   (tourist) => tourist.id
             // ),
@@ -250,48 +251,53 @@ try {
             status: bookingDto.status,
             totalPrice: bookingDto.totalPrice,
             tourPackageId: bookingDto.tourPackageId,
+            paymentProofFolder: bookingDto.paymentProofFolder,
           };
           const booking = await this.bookingRepository.createDB(
             bookingData,
             session
           );
           // console.log('bookingDto.payments::: ', bookingDto.payments);
-          const paymentDto = CreatePaymentDto.parse(bookingDto.payments[0]);
+          const paymentDto = CreatePaymentDto.parse({
+            ...bookingDto.firstPayment,
+            touristId:touristVos[touristVos.length - 1].id,
+            bookingId:booking.id,
+            paymentProofImage: bookingDto.paymentProofImage,
+          });
           // console.log('paymentDto::: ', paymentDto);
           const paymentVo = await this.paymentService.create(
-            { ...paymentDto, bookingId: booking?.id },
+            paymentDto,
             session
           );
 
-          await this.bookingRepository.updateDB(
+          const bookingUpdated = await this.bookingRepository.updateDB(
             booking.id,
-            {
-              $push: { paymentIds: paymentVo.id },
-            } as mongoose.UpdateQuery<IBooking>,
+            {paymentIds:[paymentVo.id]},
+            // {
+            //   $push: { paymentIds: paymentVo.id },
+            // } as mongoose.UpdateQuery<IBooking>,
             session
           );
           // console.log('paymentVo::: ', paymentVo);
-          const updatedBooking = await this.bookingRepository.getByIdDB(
-            booking.id,
-            session
+          // const updatedBooking = await this.bookingRepository.getByIdDB(
+          //   booking.id,
+          //   session
+          // );
+          
+          const touristsUpdated = await Promise.all(
+            touristVos.map(async (tourist) => {
+              return await this.touristService.addBookingToTourist(
+                tourist.id,
+                booking.id,
+                session
+              )
+            })
           );
-
-          await this.touristService.addBookingToTourist(
-            mainTouristVo.id,
-            booking?.id,
-            session
-          );
-          for (const tourist of additionalTouristVos) {
-            await this.touristService.addBookingToTourist(
-              tourist.id,
-              booking?.id,
-              session
-            );
-          }
+          
+          
           return this.mapToVoAllData(
-            updatedBooking,
-            mainTouristVo,
-            additionalTouristVos,
+            bookingUpdated,
+            touristsUpdated,
             paymentVo
           );
         }
@@ -307,21 +313,20 @@ try {
 
   private mapToVoAllData(
     bookingDoc: IBooking,
-    maintouristVo: TouristVo,
-    additionalTouristVos: TouristVo[],
+    touristsUpdated: TouristVo[],
     paymentVo: PaymentVo
   ): BookingCreatedVo {
     return new BookingCreatedVo(
       bookingDoc._id.toString(),
-      additionalTouristVos,
+      touristsUpdated,
       bookingDoc.dateRangeId.toString(),
-      maintouristVo,
       bookingDoc.notes,
       [paymentVo],
       bookingDoc.sellerId._id.toString(),
       bookingDoc.status,
       bookingDoc.totalPrice,
-      bookingDoc.tourPackageId._id.toString()
+      bookingDoc.tourPackageId._id.toString(),
+      bookingDoc.paymentProofFolder
     );
   }
 }

@@ -4,6 +4,8 @@ export interface IPayment extends Document<Types.ObjectId> {
   amount: number;
   paymentDate: string;
   paymentMethod: string;
-  transactionId: string;
   bookingId: string;
+  paymentProofImage: string;
+  sellerId: string;
+  touristId: string;
 }

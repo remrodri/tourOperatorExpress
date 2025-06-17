@@ -6,6 +6,7 @@ import { TouristService } from "../modules/tourist/service/TouristService";
 import { TouristRepository } from "../modules/tourist/repository/TouristRepository";
 import { BookingRepository } from "../modules/booking/repository/BookingRepository";
 import { PaymentController } from "../modules/payment/controller/PaymentController";
+import { BookingController } from "../modules/booking/controller/bookingController";
 
 function setupDI() {
 
@@ -51,6 +52,13 @@ function setupDI() {
     'paymentController', 
     (c) => new PaymentController(
       c.get('paymentService')
+    )
+  )
+
+  container.register(
+    'bookingController', 
+    (c) => new BookingController(
+      c.get('bookingService')
     )
   )
 

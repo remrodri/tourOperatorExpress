@@ -15,12 +15,22 @@ const PaymentSchema: Schema = new Schema(
       type: Schema.Types.String,
       required: [true, "Payment method is required"],
     },
-    transactionId: {
-      type: Schema.Types.String,
-    },
     bookingId: {
       type: Schema.Types.String,
       ref: "Booking",
+    },
+    paymentProofImage: {
+      type: Schema.Types.String, default: ""
+    },
+    sellerId: {
+      type: Schema.Types.String,
+      required: [true, "Seller is required"],
+      ref: "User" ,
+    },
+    touristId: {
+      type: Schema.Types.String,
+      required: [true, "Tourist is required"],
+      ref: "Tourist",
     },
   },
   { timestamps: true, collection: "Payments" }

@@ -3,7 +3,7 @@ import { IBooking } from "./IBooking";
 
 const BookingSchema: Schema = new Schema(
   {
-    additionalTouristIds: [
+    touristsIds: [
       {
         type: Schema.Types.ObjectId,
         ref: "Tourist",
@@ -13,11 +13,6 @@ const BookingSchema: Schema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "DateRange",
       required: [true, "Date range is required"],
-    },
-    mainTouristId: {
-      type: Schema.Types.ObjectId,
-      ref: "Tourist",
-      // required: [true, "Main tourist is required"],
     },
     notes: {
       type: Schema.Types.String,
@@ -47,6 +42,10 @@ const BookingSchema: Schema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "TourPackage",
       required: [true, "Tour Package is required"],
+    },
+    paymentProofFolder: {
+      type: Schema.Types.String,
+      required: [true, "Payment proof folder is required"],
     },
   },
   {

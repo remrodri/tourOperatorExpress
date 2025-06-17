@@ -67,8 +67,10 @@ export class PaymentService implements IPaymentService {
       payment.amount,
       payment.paymentDate,
       payment.paymentMethod,
-      payment.transactionId,
-      payment.bookingId.toString()
+      payment.bookingId.toString(),
+      payment.paymentProofImage,
+      payment.sellerId.toString(),
+      payment.touristId.toString()
     );
   }
 
