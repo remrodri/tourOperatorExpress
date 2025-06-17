@@ -1,27 +1,13 @@
 import { Router } from "express";
-import { BookingController } from "../controller/BookingController";
-import { BookingService } from "../service/BookingService";
-import { TouristService } from "../../tourist/service/TouristService";
-import { TouristRepository } from "../../tourist/repository/TouristRepository";
-import { PaymentService } from "../../payment/service/PaymentService";
-import { BookingRepository } from "../repository/BookingRepository";
-import { PaymentRepository } from "../../payment/repository/PaymentRepository";
+import { container } from "../../../shared/container";
+import { BookingController } from "../controller/bookingController";
+import upload from "../multer/memoryPaymentImage";
 
 const bookingRouter = Router();
 
-const touristRepository = new TouristRepository();
-const touristService = new TouristService(touristRepository);
-const paymentRepository = new PaymentRepository();
-const paymentService = new PaymentService(paymentRepository);
-const bookingRepository = new BookingRepository();
-const bookingService = new BookingService(
-  touristService,
-  paymentService,
-  bookingRepository
-);
-const bookingController = new BookingController(bookingService);
+const bookingController: BookingController = container.get('bookingController');
 
-bookingRouter.post("/bookings", (req, res, next) =>
+bookingRouter.post("/bookings", upload.single('paymentProofImage'), (req, res, next) =>
   bookingController.createBooking(req, res, next)
 );
 

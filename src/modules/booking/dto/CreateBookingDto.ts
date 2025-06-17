@@ -19,21 +19,26 @@ const PaymentSchema = z.object({
   amount: z.number().min(1, "El monto debe ser mayor a 0"),
   paymentDate: z.string().optional(),
   paymentMethod: z.string().min(1, "El metodo de pago es requerido"),
-  transactionId: z.string().optional(),
+  paymentProofImage: z.string().optional(),
+  sellerId: z.string().min(1, "El id del vendedor es requerido"),
+  // touristId: z.string().min(1, "El id del turista es requerido"),
 });
 
 export const CreateBookingDto = z.object({
-  additionalTourists: z.array(TouristSchema),
+  // additionalTourists: z.array(TouristSchema),
   // additionalTourists: z.array(z.string()),
   dateRangeId: z.string().min(1, "El id del rango de fechas es requerido"),
-  mainTourist: TouristSchema,
+  // mainTourist: TouristSchema,
   // mainTourist: z.string(),
   notes: z.string().optional(),
-  payments: z.array(PaymentSchema).min(1, "Se requiere al menos un pago"),
+  firstPayment: PaymentSchema,
   sellerId: z.string().min(1, "El id del vendedor es requerido"),
   status: z.string().default("pending"),
   totalPrice: z.number().min(1, "El precio total debe ser mayor a 0"),
   tourPackageId: z.string().min(1, "El id del paquete turistico es requerido"),
+  tourists: z.array(TouristSchema),
+  paymentProofFolder: z.string().optional(),
+  paymentProofImage: z.string().optional(),
 });
 
 export type CreateBookingDto = z.infer<typeof CreateBookingDto>;

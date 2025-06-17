@@ -15,6 +15,7 @@ const CreateTouristDto = z.object({
   passportNumber: z.string().optional(),
   dateOfBirth: z.string().optional(),
   // status: z.string().default("active"),
+  bookingIds: z.array(z.string()).optional(),
 });
 
 export type CreateTouristDto = z.infer<typeof CreateTouristDto>
