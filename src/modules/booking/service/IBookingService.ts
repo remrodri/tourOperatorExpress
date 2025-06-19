@@ -8,7 +8,7 @@ import { BookingUpdatedVo } from "../vo/BookingUpdatedVo";
 
 export interface IBookingService {
   getById(id: string, session?: ClientSession): Promise<BookingVo>;
-  updateAllData(dto: UpdateAllDataBookingDto): Promise<BookingUpdatedVo>;
+  updateAllData(dto: UpdateAllDataBookingDto,id:string): Promise<BookingUpdatedVo>;
   update(
     id: string,
     bookingData: Partial<UpdateBookingDto>,

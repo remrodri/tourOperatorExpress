@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const CreateTouristDto = z.object({
+const CreateTouristDtoSchema = z.object({
   firstName: z.string().min(3, "El nombre debe tener almenos 3 caracteres"),
   lastName: z.string().min(3, "El apellido debe tener almenos 3 caracteres"),
   phone: z.string().min(8, "El telefono debe tener almenos 8 caracteres"),
@@ -18,4 +18,4 @@ const CreateTouristDto = z.object({
   bookingIds: z.array(z.string()).optional(),
 });
 
-export type CreateTouristDto = z.infer<typeof CreateTouristDto>
+export type CreateTouristDto = z.infer<typeof CreateTouristDtoSchema>

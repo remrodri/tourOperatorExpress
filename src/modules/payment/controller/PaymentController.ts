@@ -12,6 +12,7 @@ export class PaymentController {
   async getAllPayments(req: Request, res: Response, next: NextFunction) {
     try {
       const vos = await this.paymentService.getAll();
+      console.log('vos::: ', vos);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
         .setData(vos)

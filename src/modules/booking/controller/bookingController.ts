@@ -7,6 +7,7 @@ import { UpdateBookingDto } from "../dto/UpdateBookingDto";
 import { UpdateAllDataBookingDto } from "../dto/UpdateAllDataBooking";
 import path from "path";
 import fs from "fs"
+import { BookingUpdatedVo } from "../vo/BookingUpdatedVo";
 
 export class BookingController {
   private readonly bookingService: IBookingService;
@@ -22,8 +23,11 @@ export class BookingController {
     // console.log('req.body::: ', req.body);
     try {
       const dto = UpdateAllDataBookingDto.parse(req.body);
-      console.log('dto::: ', dto);
-      const vo = await this.bookingService.updateAllData(dto);
+      const id = req.params.id;
+      // console.log('dto::: ', dto);
+      // console.log('id::: ', id);
+      const vo:BookingUpdatedVo = await this.bookingService.updateAllData(dto,id);
+      // console.log('vo::: ', vo);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
         .setData(vo)
