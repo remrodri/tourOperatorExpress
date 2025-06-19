@@ -13,7 +13,7 @@ const TouristSchema: Schema = new Schema(
     passportNumber: { type: Schema.Types.String },
     dateOfBirth: { type: Schema.Types.String },
     // status: { type: Schema.Types.String },
-    bookingIds: [{ type: Schema.Types.String }],
+    bookingIds: [{ type: Schema.Types.String }],default:[],
   },
   {
     timestamps: true,

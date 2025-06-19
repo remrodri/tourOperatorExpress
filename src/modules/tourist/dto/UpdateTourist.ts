@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const UpdateTouristDto = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   phone: z.string().optional(),

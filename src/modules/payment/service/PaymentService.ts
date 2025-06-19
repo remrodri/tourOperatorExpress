@@ -59,7 +59,10 @@ export class PaymentService implements IPaymentService {
   
   async getAll(): Promise<PaymentVo[]> {
     const paymentDocs = await this.paymentRepository.getAllDB();
-    return paymentDocs.map((payment) => this.mapToVo(payment));
+    // console.log('paymentDocs::: ', paymentDocs);
+    const vos = paymentDocs.map((payment) => this.mapToVo(payment));
+    console.log('vos::: ', vos);
+    return vos;
   }
   mapToVo(payment: IPayment): PaymentVo {
     return new PaymentVo(
@@ -67,10 +70,10 @@ export class PaymentService implements IPaymentService {
       payment.amount,
       payment.paymentDate,
       payment.paymentMethod,
-      payment.bookingId.toString(),
+      payment.bookingId,
       payment.paymentProofImage,
-      payment.sellerId.toString(),
-      payment.touristId.toString()
+      payment.sellerId,
+      payment.touristId
     );
   }
 

@@ -3,7 +3,7 @@ import { IBooking } from "../model/IBooking";
 import { BookingVo } from "../vo/BookingVo";
 import { IBookingRepository } from "./IBookingRepository";
 import { BookingModel } from "../model/BookingModel";
-import mongoose, { QueryOptions } from "mongoose";
+import { ClientSession, QueryOptions, startSession } from "mongoose";
 import { UpdateBookingDto } from "../dto/UpdateBookingDto";
 import { BookingCreatedVo } from "../vo/BookignCreatedVo";
 import { UpdateAllDataBookingDto } from "../dto/UpdateAllDataBooking";
@@ -12,27 +12,33 @@ import { BookingUpdatedVo } from "../vo/BookingUpdatedVo";
 
 export class BookingRepository implements IBookingRepository {
   async updateWithTransaction(
-    updateBookingFn: (session?: mongoose.ClientSession) => Promise<BookingUpdatedVo>
+    updateBookingFn: (session: ClientSession) => Promise<BookingUpdatedVo>
   ): Promise<BookingUpdatedVo> {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    const session = await startSession();
     try {
+      session.startTransaction({
+        writeConcern: { w: "majority" },
+      });
+  
       const booking = await updateBookingFn(session);
+  
       await session.commitTransaction();
       return booking;
     } catch (error) {
+      console.error("Error durante la transacción:", error);
       await session.abortTransaction();
       throw error;
     } finally {
       session.endSession();
     }
   }
+  
   // async updateAllDataDB(dto: BookingDto): Promise<IBooking | null> {
   //   return await BookingModel.findByIdAndUpdate(dto.id, dto, { new: true }).exec();
   // }
   async getByIdDB(
     id: string,
-    session?: mongoose.ClientSession
+    session?: ClientSession
   ): Promise<IBooking> {
     const query = BookingModel.findById(id);
     if (session) {
@@ -49,7 +55,7 @@ export class BookingRepository implements IBookingRepository {
     id: string,
     // updateData: Partial<CreateBookingDto>,
     updateData: Partial<UpdateBookingDto>,
-    session?: mongoose.ClientSession
+    session?: ClientSession
   ): Promise<IBooking> {
     const options: QueryOptions = { new: true };
     if (session) options["session"] = session;
@@ -74,7 +80,7 @@ export class BookingRepository implements IBookingRepository {
   // }
   async createDB(
     dto: any,
-    session?: mongoose.ClientSession
+    session?: ClientSession
   ): Promise<IBooking> {
     const bookingModel = new BookingModel(dto);
     const savedBooking = session
@@ -85,29 +91,29 @@ export class BookingRepository implements IBookingRepository {
 
     return savedBooking;
   }
-  async createWithTransaction(
-    createBookingFn: (session: mongoose.ClientSession) => Promise<BookingVo>
-  ): Promise<BookingVo> {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-      const booking = await createBookingFn(session);
-      await session.commitTransaction();
-      return booking;
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
-    } finally {
-      session.endSession();
-    }
-  }
+  // async createWithTransaction(
+  //   createBookingFn: (session: mongoose.ClientSession) => Promise<BookingVo>
+  // ): Promise<BookingVo> {
+  //   const session = await mongoose.startSession();
+  //   session.startTransaction();
+  //   try {
+  //     const booking = await createBookingFn(session);
+  //     await session.commitTransaction();
+  //     return booking;
+  //   } catch (error) {
+  //     await session.abortTransaction();
+  //     throw error;
+  //   } finally {
+  //     session.endSession();
+  //   }
+  // }
 
   async createWithTransaction2(
     createBookingFn: (
-      session: mongoose.ClientSession
+      session: ClientSession
     ) => Promise<BookingCreatedVo>
   ): Promise<BookingCreatedVo> {
-    const session = await mongoose.startSession();
+    const session = await startSession();
     session.startTransaction();
     try {
       const booking = await createBookingFn(session);

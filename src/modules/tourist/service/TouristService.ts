@@ -23,9 +23,10 @@ export class TouristService implements ITouristService {
   }
   async update(
     id: string,
-    tourist: UpdateTouristDto,
+    tourist: Partial<UpdateTouristDto>,
     session: mongoose.ClientSession
   ): Promise<TouristVo|null> {
+    // console.log('UpdateTouristDto::: ', tourist);
     try {
       if (!session) {
         throw new Error("Session is required for transaction");
@@ -34,11 +35,17 @@ export class TouristService implements ITouristService {
       if (!existingTourist) {
         throw new Error("Tourist not found");
       }
+      const touristFound = await this.touristRepository.getByIdDB(id);
+      // console.log('touristFound::: ', touristFound);
+      if (!touristFound) {
+        throw new Error("Tourist not found");
+      }
       const updatedTouristDoc = await this.touristRepository.updateDB(
         id,
         tourist,
         session
       );
+      // console.log('updatedTouristDoc::: ', updatedTouristDoc);
       if (!updatedTouristDoc) {
         throw new Error("Tourist update returned null or undefined");
       }
