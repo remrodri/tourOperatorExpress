@@ -15,7 +15,8 @@ import { PaymentVo } from "src/modules/payment/vo/PaymentVo";
 import { BookingUpdatedVo } from "../vo/BookingUpdatedVo";
 import { CreateTourTypeDto } from "src/modules/tourType/dto/createTourTypeDto";
 import { CreateTouristDto } from "src/modules/tourist/dto/CreateTouristDto";
-
+import { BookingVoV2 } from "../vo/BookingVoV2";
+import { IPayment } from "src/modules/payment/model/IPayment";
 
 export class BookingService implements IBookingService {
   private readonly touristService: ITouristService;
@@ -138,19 +139,19 @@ try {
     bookingData: Partial<UpdateBookingDto>,
     session: ClientSession
   ): Promise<BookingVo> {
-    console.log('bookingDatadeUpdate::: ', bookingData);
+    // console.log('bookingDatadeUpdate::: ', bookingData);
     try {
       const bookingDoc = await this.bookingRepository.getByIdDB(id, session);
       if (!bookingDoc) {
         throw new Error("Booking not found");
       }
-      console.log('bookingDoc::: ', bookingDoc);
+      // console.log('bookingDoc::: ', bookingDoc);
       const updatedBookingDoc = await this.bookingRepository.updateDB(
         id,
         bookingData,
         session
       );
-      console.log('updatedBookingDoc::: ', updatedBookingDoc);
+      // console.log('updatedBookingDoc::: ', updatedBookingDoc);
       return this.mapToVo(updatedBookingDoc);
     } catch (error) {
       if (error instanceof Error) {
@@ -161,13 +162,13 @@ try {
     }
   }
 
-  async getAll(): Promise<BookingVo[]> {
+  async getAll(): Promise<BookingVoV2[]> {
     try {
       const bookingDocs = await this.bookingRepository.getAllDB();
       if (!bookingDocs || bookingDocs.length === 0) {
         return [];
       }
-      const bookingVos = bookingDocs.map((booking) => this.mapToVo(booking));
+      const bookingVos = bookingDocs.map((booking) => this.mapToVoV2(booking));
       // console.log("bookingVos::: ", bookingVos);
       return bookingVos;
     } catch (error) {
@@ -178,13 +179,41 @@ try {
       }
     }
   }
+
+  private mapToVoV2(bookingDoc:any):BookingVoV2{
+    return new BookingVoV2(
+      bookingDoc._id.toString(),
+      bookingDoc.touristsIds.map((tourist:any) => tourist._id.toString()),
+      bookingDoc.dateRangeId.toString(),
+      bookingDoc.notes,
+      bookingDoc.paymentIds.map((payment:any) => {
+        return {
+          id:payment._id.toString(),
+          amount:payment.amount,
+          paymentDate:payment.paymentDate,
+          paymentMethod:payment.paymentMethod,
+          bookingId:payment.bookingId,
+          touristId:payment.touristId,
+          paymentProofImage:payment.paymentProofImage,
+          sellerId:payment.sellerId,
+        }
+      }),
+      bookingDoc.sellerId._id.toString(),
+      bookingDoc.status,
+      bookingDoc.totalPrice,
+      bookingDoc.tourPackageId._id.toString(),
+      bookingDoc.paymentProofFolder
+    );
+  }
   private mapToVo(bookingDoc: IBooking): BookingVo {
     return new BookingVo(
       bookingDoc._id.toString(),
       bookingDoc.touristsIds.map((tourist) => tourist._id.toString()),
       bookingDoc.dateRangeId.toString(),
       bookingDoc.notes,
-      bookingDoc.paymentIds.map((payment) => payment._id.toString()),
+      bookingDoc.paymentIds.map((payment) => {
+        return payment._id.toString()
+      }),
       bookingDoc.sellerId._id.toString(),
       bookingDoc.status,
       bookingDoc.totalPrice,

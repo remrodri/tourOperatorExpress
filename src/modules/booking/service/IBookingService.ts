@@ -5,6 +5,7 @@ import { ClientSession } from "mongoose";
 import { BookingCreatedVo } from "../vo/BookignCreatedVo";
 import { UpdateAllDataBookingDto } from "../dto/UpdateAllDataBooking";
 import { BookingUpdatedVo } from "../vo/BookingUpdatedVo";
+import { BookingVoV2 } from "../vo/BookingVoV2";
 
 export interface IBookingService {
   getById(id: string, session?: ClientSession): Promise<BookingVo>;
@@ -14,6 +15,6 @@ export interface IBookingService {
     bookingData: Partial<UpdateBookingDto>,
     session: ClientSession
   ): Promise<BookingVo>;
-  getAll(): Promise<BookingVo[]>;
+  getAll(): Promise<BookingVoV2[]>;
   createAllData(dto: CreateBookingDto): Promise<BookingCreatedVo>;
 }

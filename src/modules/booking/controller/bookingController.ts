@@ -139,6 +139,7 @@ export class BookingController {
   ): Promise<void> {
     try {
       const vos = await this.bookingService.getAll();
+      // console.log('vos::: ', vos);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
         .setData(vos)
