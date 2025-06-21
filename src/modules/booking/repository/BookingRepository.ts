@@ -71,7 +71,9 @@ export class BookingRepository implements IBookingRepository {
     return updatedBooking;
   }
   async getAllDB(): Promise<IBooking[]> {
-    return await BookingModel.find().exec();
+    const bookings = await BookingModel.find().populate("paymentIds").exec();
+    // console.log('bookings::: ', bookings);
+    return bookings;
   }
   // private mapToVo(bookingDoc: IBooking): BookingVo {
   //   return {

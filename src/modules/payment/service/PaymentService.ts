@@ -18,12 +18,12 @@ export class PaymentService implements IPaymentService {
     const session = await startSession();
     
     try {
-      let payment: any;
+      let paymentCreated: any;
       
       await session.withTransaction(async () => {
         // Crear el payment
-        payment = await this.paymentRepository.createDB(dto, session);
-        if (!payment) {
+        paymentCreated = await this.paymentRepository.createDB(dto, session);
+        if (!paymentCreated) {
           throw new Error("creacion del payment retorno null");
         }
         
@@ -37,14 +37,14 @@ export class PaymentService implements IPaymentService {
         // Actualizar el booking
         await this.bookingService.update(
           dto.bookingId,
-          { paymentIds: [...(booking.paymentIds || []), payment._id.toString()] },
+          { paymentIds: [...(booking.paymentIds || []), paymentCreated._id.toString()] },
           session
         );
         
         // withTransaction maneja automáticamente el commit/abort
       });
       
-      return this.mapToVo(payment);
+      return this.mapToVo(paymentCreated);
       
     } catch (error) {
       if (error instanceof Error) {
@@ -61,10 +61,13 @@ export class PaymentService implements IPaymentService {
     const paymentDocs = await this.paymentRepository.getAllDB();
     // console.log('paymentDocs::: ', paymentDocs);
     const vos = paymentDocs.map((payment) => this.mapToVo(payment));
-    console.log('vos::: ', vos);
+    // console.log('vos::: ', vos);
     return vos;
   }
-  mapToVo(payment: IPayment): PaymentVo {
+  mapToVo(payment: IPayment|null): PaymentVo {
+    if (!payment) {
+      throw new Error("payment es null");
+    }
     return new PaymentVo(
       payment._id.toString(),
       payment.amount,
