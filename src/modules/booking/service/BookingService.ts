@@ -202,7 +202,8 @@ try {
       bookingDoc.status,
       bookingDoc.totalPrice,
       bookingDoc.tourPackageId._id.toString(),
-      bookingDoc.paymentProofFolder
+      bookingDoc.paymentProofFolder,
+      bookingDoc.createdAt.toString()
     );
   }
   private mapToVo(bookingDoc: IBooking): BookingVo {
