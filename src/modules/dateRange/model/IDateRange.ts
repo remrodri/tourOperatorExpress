@@ -4,4 +4,5 @@ export interface IDateRange extends Document<Types.ObjectId> {
   dates: string[];
   state: string;
   guides: string[];
+  tourPackageId: string;
 }

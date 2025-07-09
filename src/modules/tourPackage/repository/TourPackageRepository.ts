@@ -1,11 +1,33 @@
-import { Types } from "mongoose";
+import { ClientSession, startSession, Types } from "mongoose";
 import { TourPackageDto } from "../dto/TourPackageDto";
 import { ITourPackage } from "../model/ITourPackage";
 import { TourPackageModel } from "../model/TourPackageModel";
 import { ITourPackageRepository } from "./ITourPackageRepository";
 import { DeleteTourPackageDto } from "../dto/DeleteTourPackageDto";
+import { TourPackageCreatedVo } from "../vo/tourPackageCreatedVo";
 
 export class TourPackageRepository implements ITourPackageRepository {
+  async createWithTransaction(
+    createTourPackageFn: (
+      session: ClientSession
+    ) => Promise<TourPackageCreatedVo>): 
+    Promise<TourPackageCreatedVo> {
+    const session = await startSession();
+    try {
+      session.startTransaction({
+        writeConcern: { w: "majority" },
+      });
+      const tpCreated = await createTourPackageFn(session);
+      await session.commitTransaction();
+      return tpCreated;
+    } catch (error) {
+      console.error("Error durante la transacción:", error);
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  }
   async softDeleteDB(dto: DeleteTourPackageDto): Promise<ITourPackage | null> {
     return await TourPackageModel.findByIdAndUpdate(
       dto.id,
