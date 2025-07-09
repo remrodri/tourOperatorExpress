@@ -3,6 +3,7 @@ export class DateRangeVo {
     public readonly id: string,
     public readonly dates: string[],
     public readonly state: string,
-    public readonly guides:string[]
+    public readonly guides:string[],
+    public readonly tourPackageId:string
   ) {}
 }

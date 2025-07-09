@@ -75,7 +75,7 @@ export class TourPackageController {
       const dto = TourPackageDto.parse(req.body);
       // console.log('dto::: ', dto);
       // console.log('dto::: ', dto);
-      const vo = await this.tourPackageService.createTourPackage(dto);
+      const vo = await this.tourPackageService.createAllData(dto);
       // console.log('vo::: ', vo);
 
       const response = new ApiResponseBuilder()

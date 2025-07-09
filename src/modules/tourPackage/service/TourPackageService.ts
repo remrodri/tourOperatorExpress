@@ -8,6 +8,8 @@ import { ITourPackage } from "../model/ITourPackage";
 import { IDateRangeService } from "../../dateRange/service/IDateRangeService";
 import { DateRangeDto } from "../../dateRange/dto/DateRangeDto";
 import { DeleteTourPackageDto } from "../dto/DeleteTourPackageDto";
+import { TourPackageCreatedVo } from "../vo/tourPackageCreatedVo";
+import { ClientSession } from "mongoose";
 
 export class TourPackageService implements ITourPackageService {
   private readonly tourPackageRepository: ITourPackageRepository;
@@ -47,7 +49,71 @@ export class TourPackageService implements ITourPackageService {
       tpDeleted.status
     );
   }
+  async createAllData(dto:TourPackageDto): Promise<TourPackageCreatedVo> {
+    try {
+      return await this.tourPackageRepository.createWithTransaction(
+        async (session:ClientSession)=>{
+          if (!session) {
+            throw new Error("Session is required for transaction");
+          }
 
+          const dateRanges = await Promise.all(
+            dto.dateRanges.map(async (dateRange) => {
+              const dateRangeDto: DateRangeDto = {
+                dates: dateRange.dates,
+                state: "activo",
+                guides: dateRange.guides,
+              };
+              return await this.dateRangeService.create(dateRangeDto);
+            })
+          );
+          const tourPackageToCreate = {
+            ...dto,
+            dateRanges: dateRanges.map((dr) => dr.id),
+          };
+          const tourPackageDoc = await this.tourPackageRepository.createDB(
+            tourPackageToCreate,
+            session
+          );
+          if (!tourPackageDoc) {
+            throw new HttpException(
+              StatusCodes.INTERNAL_SERVER_ERROR,
+              "Error creating tour package"
+            );
+          }
+          const updatedDateRanges = await Promise.all(
+            dateRanges.map(async(dateRange)=>{
+              return await this.dateRangeService.addTourPackageIdToDateRange(
+                dateRange.id.toString(),
+                tourPackageDoc._id.toString(),
+                session)
+            })
+          )
+          return new TourPackageCreatedVo(
+            tourPackageDoc._id.toString(),
+            tourPackageDoc.name,
+            tourPackageDoc.tourType.toString(),
+            tourPackageDoc.cancellationPolicy.toString(),
+            tourPackageDoc.touristDestination.toString(),
+            tourPackageDoc.duration,
+            updatedDateRanges,
+            tourPackageDoc.price,
+            tourPackageDoc.itinerary,
+            tourPackageDoc.status
+          );
+
+        }
+      )
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Internal server error"
+      );
+    }
+  }
   async createTourPackage(dto: TourPackageDto): Promise<TourPackageVo> {
     try {
       // Process date ranges
