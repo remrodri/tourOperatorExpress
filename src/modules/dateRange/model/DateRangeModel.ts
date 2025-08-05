@@ -4,7 +4,7 @@ import { IDateRange } from "./IDateRange";
 const DateRangeSchema = new Schema(
   {
     dates: { type: Schema.Types.Array },
-    state: { type: Schema.Types.String, default: "activo" },
+    state: { type: Schema.Types.String, default: "pending" },
     guides: { type: Schema.Types.Array },
     tourPackageId: { type: Schema.Types.String, ref: "TourPackage",default: "" },
   },

@@ -93,15 +93,16 @@ export class UserService implements IUserService {
     // throw new Error("Method not implemented.");
   }
 
-  async updateUser(updateUserDto: UpdateUserDto): Promise<UserVo | null> {
+  async updateUser(updateUserDto: UpdateUserDto, userId: string): Promise<UserVo | null> {
     // console.log('updateUserDto::: ', updateUserDto);
-    const userFound = await this.userRepository.findByEmail(
-      updateUserDto.email
-    );
+    // const userFound = await this.userRepository.findByEmail(
+    //   updateUserDto.email
+    // );
+    const userFound = await this.userRepository.findById(userId);
     if (!userFound) {
       throw new HttpException(StatusCodes.NOT_FOUND, "Usuario no encontrado");
     }
-    const userUpdated = await this.userRepository.updateUserData(updateUserDto);
+    const userUpdated = await this.userRepository.updateUserData(updateUserDto, userId);
     // console.log('userUpdated::: ', userUpdated);
     if (!userUpdated) {
       throw new HttpException(
@@ -113,9 +114,9 @@ export class UserService implements IUserService {
       userUpdated._id.toString(),
       userUpdated.firstName,
       userUpdated.lastName,
-      userUpdated.email,
-      userUpdated.ci,
       userUpdated.phone,
+      userUpdated.ci,
+      userUpdated.email,
       userUpdated.firstLogin,
       userUpdated.role,
       userUpdated.address,

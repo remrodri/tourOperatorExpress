@@ -10,4 +10,8 @@ export interface IBooking extends Document<Types.ObjectId> {
   totalPrice: number;
   tourPackageId: Types.ObjectId;
   paymentProofFolder: string;
+  attendance:{
+    touristId:Types.ObjectId,
+    status:"present" | "absent"
+  }[]
 }

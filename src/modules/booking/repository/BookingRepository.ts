@@ -9,8 +9,29 @@ import { BookingCreatedVo } from "../vo/BookignCreatedVo";
 import { UpdateAllDataBookingDto } from "../dto/UpdateAllDataBooking";
 import { BookingDto } from "../dto/BookingDto";
 import { BookingUpdatedVo } from "../vo/BookingUpdatedVo";
+import { BookingUpdatedAttendanceVo } from "../vo/BookingUpdatedAttendanceVo";
 
 export class BookingRepository implements IBookingRepository {
+  async updateBookingAttendanceLists(
+    updateFn: (session: ClientSession) => Promise<BookingUpdatedAttendanceVo[]>
+  ): Promise<BookingUpdatedAttendanceVo[]> {
+    const session = await startSession();
+    try {
+      session.startTransaction({ writeConcern: { w: "majority" } });
+  
+      const updatedBookings = await updateFn(session);
+  
+      await session.commitTransaction();
+      return updatedBookings;
+    } catch (error) {
+      console.error("Error durante la transacción:", error);
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  }
+  
   async updateWithTransaction(
     updateBookingFn: (session: ClientSession) => Promise<BookingUpdatedVo>
   ): Promise<BookingUpdatedVo> {

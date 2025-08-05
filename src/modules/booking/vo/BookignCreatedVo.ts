@@ -12,6 +12,10 @@ export class BookingCreatedVo {
     public readonly status: string,
     public readonly totalPrice: number,
     public readonly tourPackageId: string,
-    public readonly paymentProofFolder: string
+    public readonly paymentProofFolder: string,
+    public readonly attendance: {
+      touristId: string;
+      status: string;
+    }[]
   ) {}
 }

@@ -54,6 +54,7 @@ export class AuthService implements IAuthService {
       firstLogin: user.firstLogin,
       role: user.role.toString(),
       ci: user.ci,
+      imagePath: user.imagePath,
     };
     // console.log('userDto::: ', userDto);
     const token = generateToken(userDto);

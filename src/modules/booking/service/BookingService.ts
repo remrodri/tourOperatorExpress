@@ -3,7 +3,7 @@ import { CreateBookingDto } from "../dto/CreateBookingDto";
 import { BookingVo } from "../vo/BookingVo";
 import { IBookingService } from "./IBookingService";
 import { IPaymentService } from "src/modules/payment/service/IPaymentService";
-import { ClientSession } from "mongoose";
+import { ClientSession, Types } from "mongoose";
 import { IBookingRepository } from "../repository/IBookingRepository";
 import { CreatePaymentDto } from "../../payment/dto/CreatePaymentDto";
 import { IBooking } from "../model/IBooking";
@@ -17,6 +17,8 @@ import { CreateTourTypeDto } from "src/modules/tourType/dto/createTourTypeDto";
 import { CreateTouristDto } from "src/modules/tourist/dto/CreateTouristDto";
 import { BookingVoV2 } from "../vo/BookingVoV2";
 import { IPayment } from "src/modules/payment/model/IPayment";
+import { UpdateBookingAttendanceListsDto } from "../dto/UpdateBookingAttendanceListsDto";
+import { BookingUpdatedAttendanceVo } from "../vo/BookingUpdatedAttendanceVo";
 
 export class BookingService implements IBookingService {
   private readonly touristService: ITouristService;
@@ -32,6 +34,52 @@ export class BookingService implements IBookingService {
     this.paymentService = paymentService;
     this.bookingRepository = bookingRespository;
   }
+  async updateBookingAttendanceLists(
+    dto: UpdateBookingAttendanceListsDto
+  ): Promise<BookingUpdatedAttendanceVo[]> {
+    try {
+      const updatedBookings = await this.bookingRepository.updateBookingAttendanceLists(
+        async (session) => {
+          const results: BookingUpdatedAttendanceVo[] = [];
+  
+          for (const attList of dto) {
+            const bookingDoc = await this.bookingRepository.getByIdDB(attList.bookingId, session);
+            if (!bookingDoc) {
+              throw new Error(`Booking not found for ID: ${attList.bookingId}`);
+            }
+  
+            // Actualizamos o insertamos asistencia
+            for (const att of attList.attendance) {
+              const existing = bookingDoc.attendance.find((a) =>
+                a.touristId.toString() === att.touristId
+              );
+  
+              if (existing) {
+                existing.status = att.status;
+              } else {
+                bookingDoc.attendance.push({ touristId: new Types.ObjectId(att.touristId), status: att.status });
+              }
+            }
+  
+            await bookingDoc.save({ session });
+  
+            results.push(new BookingUpdatedAttendanceVo(attList.bookingId, attList.attendance));
+          }
+  
+          return results;
+        }
+      );
+  
+      return updatedBookings;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Error al actualizar asistencia: ${error.message}`);
+      } else {
+        throw new Error("Error desconocido al actualizar asistencia");
+      }
+    }
+  }
+  
 
   async getById(id: string, session?: ClientSession): Promise<BookingVo> {
 try {
@@ -203,6 +251,12 @@ try {
       bookingDoc.totalPrice,
       bookingDoc.tourPackageId._id.toString(),
       bookingDoc.paymentProofFolder,
+      bookingDoc.attendance.map((attendance:any) => {
+        return {
+          touristId: attendance.touristId.toString(),
+          status: attendance.status,
+        };
+      }),
       bookingDoc.createdAt.toString()
     );
   }
@@ -248,6 +302,12 @@ try {
             totalPrice: bookingDto.totalPrice,
             tourPackageId: bookingDto.tourPackageId,
             paymentProofFolder: bookingDto.paymentProofFolder,
+            attendance:touristVos.map((touristVo) => {
+              return {
+                touristId: touristVo.id,
+                status: "absent",
+              };
+            }),
           };
           const booking = await this.bookingRepository.createDB(
             bookingData,
@@ -311,7 +371,13 @@ try {
       bookingDoc.status,
       bookingDoc.totalPrice,
       bookingDoc.tourPackageId._id.toString(),
-      bookingDoc.paymentProofFolder
+      bookingDoc.paymentProofFolder,
+      bookingDoc.attendance.map((attendance) => {
+        return {
+          touristId: attendance.touristId.toString(),
+          status: attendance.status,
+        };
+      })
     );
   }
 }

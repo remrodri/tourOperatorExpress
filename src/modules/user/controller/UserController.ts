@@ -90,11 +90,9 @@ export class UserController {
     next: NextFunction
   ): Promise<void> {
     const updateUserDto = UpdateUserDto.parse(req.body);
-    // console.log('updateUserDto::: ', updateUserDto);
-    // console.log('req.body::: ', req.body);
+    console.log('updateUserDto::: ', updateUserDto);
     try {
-      const user = await this.userService.updateUser(updateUserDto);
-      // console.log('user::: ', user);
+      const user = await this.userService.updateUser(updateUserDto, req.params.userId);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
         .setData(user)

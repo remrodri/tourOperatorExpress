@@ -7,4 +7,5 @@ export interface UserResponseDto {
   firstLogin: boolean;
   role: string;
   ci:string
+  imagePath: string;
 }

@@ -15,7 +15,13 @@ bookingRouter.get("/bookings", (req, res, next) =>
   bookingController.getAllBookings(req, res, next)
 );
 
+bookingRouter.put("/bookings/attendance-lists", (req, res, next) =>
+  bookingController.updateBookingAttendanceLists(req, res, next)
+);
+
 bookingRouter.put("/bookings/:id", (req, res, next) =>
   bookingController.updateBooking(req, res, next)
 );
+
+
 export default bookingRouter;

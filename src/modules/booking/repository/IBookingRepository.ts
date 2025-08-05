@@ -6,8 +6,12 @@ import { BookingCreatedVo } from "../vo/BookignCreatedVo";
 import { UpdateAllDataBookingDto } from "../dto/UpdateAllDataBooking";
 import { BookingDto } from "../dto/BookingDto";
 import { BookingUpdatedVo } from "../vo/BookingUpdatedVo";
+import { BookingUpdatedAttendanceVo } from "../vo/BookingUpdatedAttendanceVo";
 
 export interface IBookingRepository {
+  updateBookingAttendanceLists(
+    updateBookingFn: (session?: mongoose.ClientSession) => Promise<BookingUpdatedAttendanceVo[]>
+  ): Promise<BookingUpdatedAttendanceVo[]>;
   updateWithTransaction(
     updateBookingFn: (session?: mongoose.ClientSession) => Promise<BookingUpdatedVo>
   ): Promise<BookingUpdatedVo>;

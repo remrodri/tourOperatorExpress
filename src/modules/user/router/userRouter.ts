@@ -37,6 +37,7 @@ const userService = new UserService(
 );
 const userController = new UserController(userService);
 
+
 userRouter.get("/users", authMiddleware, (req, res, next) =>
   userController.getAllUsers(req, res, next)
 );
@@ -48,7 +49,7 @@ userRouter.post(
   (req, res, next) => userController.createUser(req, res, next)
 );
 
-userRouter.patch("/users", authMiddleware, (req, res, next) =>
+userRouter.put("/users/:userId", upload.none(), (req, res, next) =>
   userController.updateUser(req, res, next)
 );
 
