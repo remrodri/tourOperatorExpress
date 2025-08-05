@@ -47,6 +47,20 @@ const BookingSchema: Schema = new Schema(
       type: Schema.Types.String,
       required: [true, "Payment proof folder is required"],
     },
+    attendance: [
+      {
+        touristId: {
+          type: Schema.Types.ObjectId,
+          ref: "Tourist",
+          required: true,
+        },
+        status: {
+          type: String,
+          enum: ["present", "absent"], // o los estados que prefieras
+          default: "absent",
+        },
+      },
+    ],
   },
   {
     timestamps: true,

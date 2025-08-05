@@ -38,19 +38,11 @@ export class UserRepository implements IUserRepository {
     return await UserModel.findById(userId);
     // throw new Error("Method not implemented.");
   }
-  async updateUserData(userData: UpdateUserDto): Promise<IUser | null> {
+  async updateUserData(userData: UpdateUserDto, userId: string): Promise<IUser | null> {
     // console.log('userData::: ', userData);
     const user = await UserModel.findByIdAndUpdate(
-      userData.userId,
-      {
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        email: userData.email,
-        ci: userData.ci,
-        phone: userData.phone,
-        role: userData.role,
-        new: userData.address,
-      },
+      userId,
+      userData,
       { new: true }
     );
     // console.log("user::: ", user);

@@ -6,6 +6,9 @@ import { BookingCreatedVo } from "../vo/BookignCreatedVo";
 import { UpdateAllDataBookingDto } from "../dto/UpdateAllDataBooking";
 import { BookingUpdatedVo } from "../vo/BookingUpdatedVo";
 import { BookingVoV2 } from "../vo/BookingVoV2";
+import { BookingUpdatedAttendanceVo } from "../vo/BookingUpdatedAttendanceVo";
+import { UpdateBookingAttendanceListsDto } from '../dto/UpdateBookingAttendanceListsDto';
+import { IBooking } from "../model/IBooking";
 
 export interface IBookingService {
   getById(id: string, session?: ClientSession): Promise<BookingVo>;
@@ -17,4 +20,5 @@ export interface IBookingService {
   ): Promise<BookingVo>;
   getAll(): Promise<BookingVoV2[]>;
   createAllData(dto: CreateBookingDto): Promise<BookingCreatedVo>;
+  updateBookingAttendanceLists(dto: UpdateBookingAttendanceListsDto): Promise<any[]>;
 }

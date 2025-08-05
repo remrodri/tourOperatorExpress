@@ -1,7 +1,7 @@
-import { IUser } from "../../model/user/IUser";
 import { CreateUserDto } from "../dto/createUserDto";
 import { DeleteUserDto } from "../dto/deleteUserDto";
 import { UpdateUserDto } from "../dto/updateUserDto";
+import { IUser } from "../model/IUser";
 
 export interface IUserRepository {
   getAll(): Promise<IUser[]>;
@@ -15,7 +15,7 @@ export interface IUserRepository {
     userId: string,
     userQuestionsAnswersId: string
   ): Promise<IUser | null>;
-  updateUserData(userData: UpdateUserDto): Promise<IUser | null>;
+  updateUserData(userData: UpdateUserDto, userId: string): Promise<IUser | null>;
   findById(userId: string): Promise<IUser | null>;
   softDeleteUser(deleteUserDto: DeleteUserDto): Promise<IUser | null>;
   updateFirstLogin(userId: string): Promise<IUser | null>;

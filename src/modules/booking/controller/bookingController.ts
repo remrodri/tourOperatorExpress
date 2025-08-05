@@ -8,11 +8,32 @@ import { UpdateAllDataBookingDto } from "../dto/UpdateAllDataBooking";
 import path from "path";
 import fs from "fs"
 import { BookingUpdatedVo } from "../vo/BookingUpdatedVo";
+import { UpdateBookingAttendanceListsDto } from "../dto/UpdateBookingAttendanceListsDto";
 
 export class BookingController {
   private readonly bookingService: IBookingService;
   constructor(bookingService: IBookingService) {
     this.bookingService = bookingService;
+  }
+
+  async updateBookingAttendanceLists(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const dto = UpdateBookingAttendanceListsDto.parse(req.body);
+      // console.log('dto::: ', dto);
+      const vo = await this.bookingService.updateBookingAttendanceLists(dto);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setData(vo)
+        .setMessage("booking updated successfully")
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
   }
 
   async updateBooking(
