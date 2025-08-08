@@ -90,9 +90,17 @@ export class UserController {
     next: NextFunction
   ): Promise<void> {
     const updateUserDto = UpdateUserDto.parse(req.body);
-    console.log('updateUserDto::: ', updateUserDto);
+    // console.log('updateUserDto::: ', updateUserDto);
+    const imagePath = req.file?.path || null;
+    // if (!imagePath) {
+    //   throw new Error("Falla al subir la imagen");
+    // }
+    const image = imagePath
+      ? `/uploads/perfilImage/${req.file?.filename}`
+      : "";
+    const userDataWithImage = { ...updateUserDto, imagePath: image };
     try {
-      const user = await this.userService.updateUser(updateUserDto, req.params.userId);
+      const user = await this.userService.updateUser(userDataWithImage, req.params.userId);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
         .setData(user)

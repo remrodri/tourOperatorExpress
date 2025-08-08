@@ -49,7 +49,7 @@ userRouter.post(
   (req, res, next) => userController.createUser(req, res, next)
 );
 
-userRouter.put("/users/:userId", upload.none(), (req, res, next) =>
+userRouter.put("/users/:userId", upload.single("image"), (req, res, next) =>
   userController.updateUser(req, res, next)
 );
 
