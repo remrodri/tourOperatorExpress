@@ -2,19 +2,15 @@ import multer, { StorageEngine } from "multer";
 import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
+import { Request } from "express";
 
-// Configuración de multer con destino dinámico
 const storage: StorageEngine = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // Generamos un ID único para la carpeta si no se ha definido antes
-    if (!req.body.imageFolder) {
-      req.body.imageFolder = uuidv4();
-    }
-
+  destination: (req: Request, file, cb) => {
+    const folderName = req.imageFolder || uuidv4(); // usa el valor del middleware
     const destinationPath = path.join(
       __dirname,
       "../uploads/destinations",
-      req.body.imageFolder
+      folderName
     );
 
     if (!fs.existsSync(destinationPath)) {
@@ -30,10 +26,9 @@ const storage: StorageEngine = multer.diskStorage({
   },
 });
 
-// Middleware de subida
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // Límite de 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
 
 export default upload;
