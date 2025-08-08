@@ -102,7 +102,7 @@ export class UserService implements IUserService {
     if (!userFound) {
       throw new HttpException(StatusCodes.NOT_FOUND, "Usuario no encontrado");
     }
-    updateUserDto.imagePath && (updateUserDto.imagePath = userFound.imagePath);
+    updateUserDto.imagePath==="" && (updateUserDto.imagePath = userFound.imagePath);
     const userUpdated = await this.userRepository.updateUserData(updateUserDto, userId);
     // console.log('userUpdated::: ', userUpdated);
     if (!userUpdated) {
