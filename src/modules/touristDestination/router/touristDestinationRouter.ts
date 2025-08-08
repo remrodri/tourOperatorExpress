@@ -3,6 +3,7 @@ import { TouristDestinationController } from "../controller/TouristDestinationCo
 import upload from "../../../multerTouristDestinations";
 import { TouristDestinationService } from "../service/TouristDestinationService";
 import { TouristDestinationRepository } from "../repository/TouristDestinationRepository";
+import { setImageFolder } from "../middleware/setImageFolder";
 
 const touristDestinationRepository = new TouristDestinationRepository();
 const touristDestinationService = new TouristDestinationService(
@@ -14,9 +15,23 @@ const touristDestinationController = new TouristDestinationController(
 
 const touristDestinationRouter = Router();
 
-touristDestinationRouter.delete("/tourist-destination/:id", (req, res, next) =>
-  touristDestinationController.deleteTorusitDestination(req, res, next)
-);
+// touristDestinationRouter.delete("/tourist-destination/:id", (req, res, next) =>
+//   touristDestinationController.deleteTorusitDestination(req, res, next)
+// );
+// const setImageFolder = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   const { id } = req.params;
+//   const destination = await touristDestinationService.findByIdDB(id);
+//   if (destination) {
+//     req.body.imageFolder = destination.imageFolder;
+//   } else {
+//     req.body.imageFolder = uuidv4();
+//   }
+//   next();
+// };
 
 touristDestinationRouter.get("/tourist-destination", (req, res, next) =>
   touristDestinationController.getAllTouristDestination(req, res, next)
@@ -24,14 +39,15 @@ touristDestinationRouter.get("/tourist-destination", (req, res, next) =>
 
 touristDestinationRouter.post(
   "/tourist-destination",
-  upload.array("newImages", 5), // Ahora funciona sin parámetros adicionales
+  upload.array("newImages", 5),
   (req, res, next) =>
     touristDestinationController.createTouristDestination(req, res, next)
 );
 
 touristDestinationRouter.put(
   "/tourist-destination/:id",
-  upload.array("newImages", 5),
+  setImageFolder, // obtiene o crea imageFolder
+  upload.array("newImages", 5), // multer usa ese imageFolder
   (req, res, next) =>
     touristDestinationController.updateTouristDestination(req, res, next)
 );

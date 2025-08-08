@@ -6,9 +6,9 @@ import { TouristDestinationVo } from "../vo/TouristDestinationVo";
 import { ITouristDestinationService } from "./ITouristDestinationService";
 import { StatusCodes } from "http-status-codes";
 import fs from "fs";
-import { UpdateTouristDestinationDto } from "../dto/updateTouristDestinationDto";
-import { DeleteTouristDestinationDto } from "../dto/deleteTouristDestinationDto";
-import { DeletedTouristDestinationVo } from "../vo/deletedTouristDestinationVo";
+import { UpdateTouristDestinationDto } from "../dto/UpdateTouristDestinationDto";
+// import { DeleteTouristDestinationDto } from "../dto/DeleteTouristDestinationDto";
+// import { DeletedTouristDestinationVo } from "../vo/DeletedTouristDestinationVo";
 
 export class TouristDestinationService implements ITouristDestinationService {
   private readonly touristDestinationRepository: ITouristDestinationRepository;
@@ -16,25 +16,42 @@ export class TouristDestinationService implements ITouristDestinationService {
   constructor(touristDestinationRepository: ITouristDestinationRepository) {
     this.touristDestinationRepository = touristDestinationRepository;
   }
-  async softDeleteTouristDestination(
-    dto: DeleteTouristDestinationDto
-  ): Promise<DeletedTouristDestinationVo> {
-    const deleted = await this.touristDestinationRepository.softDeleteDB(dto);
-    if (!deleted) {
+  async findByIdDB(id: string): Promise<TouristDestinationVo> {
+    const destination = await this.touristDestinationRepository.findByIdDB(id);
+    if (!destination) {
       throw new HttpException(
         StatusCodes.NOT_FOUND,
-        "Tourist destination not found"
+        "TouristDestination not found"
       );
     }
-    return new DeletedTouristDestinationVo(deleted._id.toString());
+    return new TouristDestinationVo(
+      destination._id.toString(),
+      destination.name,
+      destination.description,
+      destination.imageFolder,
+      destination.images,
+      destination.deleted
+    );
   }
+  // async softDeleteTouristDestination(
+  //   dto: DeleteTouristDestinationDto
+  // ): Promise<DeletedTouristDestinationVo> {
+  //   const deleted = await this.touristDestinationRepository.softDeleteDB(dto);
+  //   if (!deleted) {
+  //     throw new HttpException(
+  //       StatusCodes.NOT_FOUND,
+  //       "Tourist destination not found"
+  //     );
+  //   }
+  //   return new DeletedTouristDestinationVo(deleted._id.toString());
+  // }
   async updateTouristDestination(
     id: string,
     dto: UpdateTouristDestinationDto,
-    existingImages: string[],
+    // existingImages: string[],
     files: Express.Multer.File[]
   ): Promise<TouristDestinationVo> {
-    const destination = await this.touristDestinationRepository.findByIdDB(id);
+    let destination = await this.touristDestinationRepository.findByIdDB(id);
     if (!destination) {
       throw new HttpException(
         StatusCodes.NOT_FOUND,
@@ -48,8 +65,9 @@ export class TouristDestinationService implements ITouristDestinationService {
       (file) =>
         `/uploads/destinations/${destination.imageFolder}/${file.filename}`
     );
-    destination.images = [...existingImages, ...newImagePaths];
-
+    // destination.images = [...existingImages, ...newImagePaths];
+    // destination.images = [...newImagePaths];
+    destination.images = newImagePaths;
     const updatedTouristDestination =
       await this.touristDestinationRepository.updateDB(id, destination);
     if (!updatedTouristDestination) {
@@ -59,15 +77,16 @@ export class TouristDestinationService implements ITouristDestinationService {
       );
     }
 
-    const existingImagesSet = new Set(existingImages);
-    const imagesToDelete = destination.images.filter(
-      (image) => !existingImagesSet.has(image)
-    );
+    // const existingImagesSet = new Set(existingImages);
+    // const imagesToDelete = destination.images.filter(
+    //   (image) => !existingImagesSet.has(image)
+    // );
 
-    imagesToDelete.forEach((imagePath) => {
-      const absolutePath = path.join(__dirname, "..", imagePath);
-      if (fs.existsSync(absolutePath)) fs.unlinkSync(absolutePath);
-    });
+    // imagesToDelete.forEach((imagePath) => {
+    //   const absolutePath = path.join(__dirname, "..", imagePath);
+    //   if (fs.existsSync(absolutePath)) fs.unlinkSync(absolutePath);
+    // });
+
     return new TouristDestinationVo(
       updatedTouristDestination._id.toString(),
       updatedTouristDestination.name,

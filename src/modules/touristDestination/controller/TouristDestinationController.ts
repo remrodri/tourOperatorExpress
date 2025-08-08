@@ -3,8 +3,9 @@ import { ITouristDestinationService } from "../service/ITouristDestinationServic
 import { TouristDestinationDto } from "../dto/TouristDestinationDto";
 import { ApiResponseBuilder } from "../../../utils/response/apiResponseBuilder";
 import { StatusCodes } from "http-status-codes";
-import { UpdateTouristDestinationDto } from "../dto/updateTouristDestinationDto";
-import { DeleteTouristDestinationDto } from "../dto/DeleteTouristDestinationDto";
+import { UpdateTouristDestinationDto } from "../dto/UpdateTouristDestinationDto";
+// import { DeleteTouristDestinationDto } from "../dto/DeleteTouristDestinationDto";
+// import { DeletedTouristDestinationDto } from "../dto/DeletedTouristDestinationDto";
 
 export class TouristDestinationController {
   private readonly touristDestinationService: ITouristDestinationService;
@@ -13,45 +14,50 @@ export class TouristDestinationController {
     this.touristDestinationService = touristDestinationService;
   }
 
-  async deleteTorusitDestination(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      // const { id } = req.params;
-      const dto = DeleteTouristDestinationDto.parse(req.params);
-      const vo =
-        await this.touristDestinationService.softDeleteTouristDestination(dto);
-      const response = new ApiResponseBuilder()
-        .setStatusCode(StatusCodes.OK)
-        .setMessage("Deleted succesfully")
-        .setData(vo)
-        .build();
-      res.status(StatusCodes.OK).json(response);
-    } catch (error) {
-      next(error);
-    }
-  }
+  // async deleteTorusitDestination(
+  //   req: Request,
+  //   res: Response,
+  //   next: NextFunction
+  // ) {
+  //   try {
+  //     // const { id } = req.params;
+  //     const dto = DeleteTouristDestinationDto.parse(req.params);
+  //     const vo =
+  //       await this.touristDestinationService.softDeleteTouristDestination(dto);
+  //     const response = new ApiResponseBuilder()
+  //       .setStatusCode(StatusCodes.OK)
+  //       .setMessage("Deleted succesfully")
+  //       .setData(vo)
+  //       .build();
+  //     res.status(StatusCodes.OK).json(response);
+  //   } catch (error) {
+  //     next(error);
+  //   }
+  // }
   async updateTouristDestination(
     req: Request,
     res: Response,
     next: NextFunction
   ) {
     try {
+      // console.log("req.body::: ", req.body);
       const { id } = req.params;
-      const { name, description, existingImages } = req.body;
+      const {
+        name,
+        description,
+        // existingImages
+      } = req.body;
       const newImages = req.files as Express.Multer.File[];
 
       // const parsedData = TouristDestinationDto.parse({ name, description });
       const dto = UpdateTouristDestinationDto.parse({ name, description });
-      console.log("dto::: ", dto);
       const vo = await this.touristDestinationService.updateTouristDestination(
         id,
         dto,
-        existingImages ? JSON.parse(existingImages) : [],
+        // existingImages ? JSON.parse(existingImages) : [],
         newImages
       );
+      // console.log("dto::: ", dto);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
         .setMessage("TouristDestination successfully updated")
