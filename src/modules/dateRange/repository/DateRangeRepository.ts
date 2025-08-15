@@ -3,8 +3,22 @@ import { DateRangeDto } from "../dto/DateRangeDto";
 import { DateRangeModel } from "../model/DateRangeModel";
 import { IDateRange } from "../model/IDateRange";
 import { IDateRangeRepository } from "./IDateRangeRepository";
+import { UpdateDateRangeDto } from "../dto/UpdateDateRangeDto";
 
 export class DateRangeRepository implements IDateRangeRepository {
+  async updateDateRangeDB(id: string, dto: UpdateDateRangeDto): Promise<IDateRange | null> {
+    const updatedDateRange = 
+    await DateRangeModel.findByIdAndUpdate(
+      id, 
+      dto, 
+      { new: true }
+    );
+    if (!updatedDateRange) {
+      throw new Error(`DateRange con ID ${id} no encontrado`);
+    }
+    return updatedDateRange;
+  }
+  
   async addTourPackageIdToDateRange(id: string, tourPackageId: string, session?: ClientSession): Promise<IDateRange | null> {
     const updatedDateRange = 
     await DateRangeModel.findByIdAndUpdate(

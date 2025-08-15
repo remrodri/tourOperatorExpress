@@ -6,12 +6,33 @@ import { IDateRangeRepository } from "../repository/IDateRangeRepository";
 import { DateRangeVo } from "../vo/DateRangeVo";
 import { IDateRangeService } from "./IDateRangeService";
 import { StatusCodes } from "http-status-codes";
+import { UpdateDateRangeDto } from "../dto/UpdateDateRangeDto";
 
 export class DateRangeService implements IDateRangeService {
   private readonly dateRangeRepository: IDateRangeRepository;
 
   constructor(dateRangeRepository: IDateRangeRepository) {
     this.dateRangeRepository = dateRangeRepository;
+  }
+  async updateDateRange(id: string, dto: UpdateDateRangeDto): Promise<DateRangeVo> {
+    const drFound = await this.dateRangeRepository.findByIdDB(id);
+    if (!drFound) {
+      throw new HttpException(StatusCodes.NOT_FOUND, "DateRange not found");
+    }
+    const drUpdated = await this.dateRangeRepository.updateDateRangeDB(id, dto);
+    if (!drUpdated) {
+      throw new HttpException(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Error updating DateRange"
+      );
+    }
+    return new DateRangeVo(
+      drUpdated._id.toString(),
+      drUpdated.dates,
+      drUpdated.state,
+      drUpdated.guides,
+      drUpdated.tourPackageId
+    );
   }
   async addTourPackageIdToDateRange(id: string, tourPackageId: string, session?: ClientSession): Promise<DateRangeVo> {
     const drFound = await this.dateRangeRepository.findByIdDB(id);

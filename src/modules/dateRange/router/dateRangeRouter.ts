@@ -13,4 +13,8 @@ dateRangeRouter.get("/date-range", (req, res, next) =>
   dateRangeController.getAllDateRange(req, res, next)
 );
 
+dateRangeRouter.put("/date-range/:id", (req, res, next) =>
+  dateRangeController.updateDateRange(req, res, next)
+);
+
 export default dateRangeRouter;

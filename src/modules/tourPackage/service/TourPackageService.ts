@@ -10,6 +10,7 @@ import { DateRangeDto } from "../../dateRange/dto/DateRangeDto";
 import { DeleteTourPackageDto } from "../dto/DeleteTourPackageDto";
 import { TourPackageCreatedVo } from "../vo/tourPackageCreatedVo";
 import { ClientSession } from "mongoose";
+import { UpdateTourPackageDto } from "../dto/UpdateTourPackageDto";
 
 export class TourPackageService implements ITourPackageService {
   private readonly tourPackageRepository: ITourPackageRepository;
@@ -185,7 +186,7 @@ export class TourPackageService implements ITourPackageService {
     }
   }
 
-  async update(id: string, dto: TourPackageDto): Promise<TourPackageVo> {
+  async update(id: string, dto: UpdateTourPackageDto): Promise<TourPackageVo> {
     try {
       const existingTourPackage = await this.tourPackageRepository.findByIdDB(
         id
@@ -198,22 +199,22 @@ export class TourPackageService implements ITourPackageService {
         );
       }
 
-      // Process date ranges
-      const dateRangeIds = await Promise.all(
-        dto.dateRanges.map(async (range) => {
-          const dateRangeDto: DateRangeDto = {
-            dates: range.dates,
-            state: "activo",
-          };
-          const dateRangeVo = await this.dateRangeService.create(dateRangeDto);
-          return dateRangeVo.id;
-        })
-      );
+      // // Process date ranges
+      // const dateRangeIds = await Promise.all(
+      //   dto.dateRanges.map(async (range) => {
+      //     const dateRangeDto: DateRangeDto = {
+      //       dates: range.dates,
+      //       state: "activo",
+      //     };
+      //     const dateRangeVo = await this.dateRangeService.create(dateRangeDto);
+      //     return dateRangeVo.id;
+      //   })
+      // );
 
       // Update tour package with new date range references
       const updatedTourPackage = await this.tourPackageRepository.updateDB(id, {
         ...dto,
-        dateRanges: dateRangeIds,
+        // dateRanges: dateRangeIds,
       });
 
       if (!updatedTourPackage) {

@@ -68,7 +68,7 @@ const TourPackageSchema: Schema = new Schema(
     },
     status: {
       type: Schema.Types.String,
-      enum: ["active", "draft", "archived"],
+      enum: ["active", "inactive"],
       default: "active",
     },
     deleted: {

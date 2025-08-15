@@ -5,6 +5,7 @@ import { ApiResponseBuilder } from "../../../utils/response/apiResponseBuilder";
 import { StatusCodes } from "http-status-codes";
 import { HttpException } from "src/middleware/httpException";
 import { DeleteTourPackageDto } from "../dto/DeleteTourPackageDto";
+import { UpdateTourPackageDto } from "../dto/UpdateTourPackageDto";
 
 export class TourPackageController {
   private readonly tourPackageService: ITourPackageService;
@@ -34,9 +35,10 @@ export class TourPackageController {
     res: Response,
     next: NextFunction
   ): Promise<void> {
+    // console.log("req.body::: ", req.body);
     try {
       const { id } = req.params;
-      const dto = TourPackageDto.parse(req.body);
+      const dto = UpdateTourPackageDto.parse(req.body);
       // console.log("dto::: ", dto);
       const vo = await this.tourPackageService.update(id, dto);
       // console.log('vo::: ', vo);

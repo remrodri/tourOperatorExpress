@@ -1,6 +1,7 @@
 import { ClientSession } from "mongoose";
 import { DateRangeDto } from "../dto/DateRangeDto";
 import { DateRangeVo } from "../vo/DateRangeVo";
+import { UpdateDateRangeDto } from "../dto/UpdateDateRangeDto";
 
 export interface IDateRangeService {
   create(dto: DateRangeDto): Promise<DateRangeVo>;
@@ -12,4 +13,5 @@ export interface IDateRangeService {
     session: ClientSession
   ): Promise<DateRangeVo>;
   addTourPackageIdToDateRange(id: string, tourPackageId: string, session?: ClientSession): Promise<DateRangeVo>;
+  updateDateRange(id: string, dto: UpdateDateRangeDto): Promise<DateRangeVo>;
 }
