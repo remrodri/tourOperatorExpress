@@ -16,7 +16,7 @@ const tourPackageService = new TourPackageService(
 );
 const tourPackageController = new TourPackageController(tourPackageService);
 
-tourPackageRouter.put("/tour-Package/:id", (req, res, next) =>
+tourPackageRouter.put("/tour-package/:id", (req, res, next) =>
   tourPackageController.updateTourPackage(req, res, next)
 );
 

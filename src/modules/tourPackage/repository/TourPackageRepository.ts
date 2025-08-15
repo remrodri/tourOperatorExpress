@@ -1,5 +1,4 @@
-import { ClientSession, startSession, Types } from "mongoose";
-import { TourPackageDto } from "../dto/TourPackageDto";
+import { ClientSession, startSession } from "mongoose";
 import { ITourPackage } from "../model/ITourPackage";
 import { TourPackageModel } from "../model/TourPackageModel";
 import { ITourPackageRepository } from "./ITourPackageRepository";
@@ -31,7 +30,7 @@ export class TourPackageRepository implements ITourPackageRepository {
   async softDeleteDB(dto: DeleteTourPackageDto): Promise<ITourPackage | null> {
     return await TourPackageModel.findByIdAndUpdate(
       dto.id,
-      { status: "draft" },
+      { status: "inactive" },
       { new: true }
     );
   }
