@@ -10,8 +10,9 @@ export interface ITourPackageRepository {
   updateDB(id: string, dto: any): Promise<ITourPackage | null>;
   // createDB(dto: TourPackageDto): Promise<ITourPackage | null>;
   createDB(dto: any,session?:ClientSession): Promise<ITourPackage | null>;
-  geatAllDB(): Promise<ITourPackage[]>;
+  getAllDB(): Promise<ITourPackage[]>;
   createWithTransaction(
     createBookingFn: (session: ClientSession) => Promise<TourPackageCreatedVo>
   ): Promise<TourPackageCreatedVo>;
+  addDateRangeToTourPackage(id: string, dateRangeId: string): Promise<ITourPackage | null>;
 }

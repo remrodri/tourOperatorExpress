@@ -8,7 +8,10 @@ export interface ITourPackageService {
   delete(dto: DeleteTourPackageDto): Promise<TourPackageVo>;
   // update(id: string, dto: TourPackageDto): Promise<TourPackageVo>;
   update(id: string, dto: UpdateTourPackageDto): Promise<TourPackageVo>;
-  createTourPackage(dto: TourPackageDto): Promise<TourPackageVo>;
+  // createTourPackage(dto: TourPackageDto): Promise<TourPackageVo>;
   getAllTourPackages(): Promise<TourPackageVo[]>;
   createAllData(dto: TourPackageDto): Promise<TourPackageCreatedVo>;
+  findById(id: string): Promise<TourPackageVo>;
+  addDateRangeToTourPackage(id: string, dateRangeId: string): Promise<TourPackageVo>;
+  getAllTourPackagesWithDateRangesInfo(): Promise<TourPackageVo[]>;
 }

@@ -3,10 +3,21 @@ import { IDateRange } from "./IDateRange";
 
 const DateRangeSchema = new Schema(
   {
-    dates: { type: Schema.Types.Array },
-    state: { type: Schema.Types.String, default: "pending" },
-    guides: { type: Schema.Types.Array },
-    tourPackageId: { type: Schema.Types.String, ref: "TourPackage",default: "" },
+    // dates: { type: Schema.Types.Array },
+    dates: [{ type: String }],
+    state: {
+      type: Schema.Types.String,
+      enum: ["pending", "completed", "cancelled"],
+      default: "pending",
+    },
+    // guides: { type: Schema.Types.Array },
+    guides: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    tourPackageId: {
+      type: Schema.Types.ObjectId,
+      ref: "TourPackage",
+      // default: "",
+      required: false,
+    },
   },
   { timestamps: true, collection: "Date_Ranges" }
 );

@@ -6,6 +6,13 @@ import { DeleteTourPackageDto } from "../dto/DeleteTourPackageDto";
 import { TourPackageCreatedVo } from "../vo/tourPackageCreatedVo";
 
 export class TourPackageRepository implements ITourPackageRepository {
+  async addDateRangeToTourPackage(id: string, dateRangeId: string): Promise<ITourPackage | null> {
+    return await TourPackageModel.findByIdAndUpdate(
+      id,
+      { $push: { dateRanges: dateRangeId } },
+      { new: true }
+    );
+  }
   async createWithTransaction(
     createTourPackageFn: (
       session: ClientSession
@@ -40,7 +47,7 @@ export class TourPackageRepository implements ITourPackageRepository {
   async updateDB(id: string, dto: any): Promise<ITourPackage | null> {
     return await TourPackageModel.findByIdAndUpdate(id, dto, { new: true });
   }
-  async geatAllDB(): Promise<ITourPackage[]> {
+  async getAllDB(): Promise<ITourPackage[]> {
     return await TourPackageModel.find().exec();
   }
   async createDB(dto: any): Promise<ITourPackage | null> {
