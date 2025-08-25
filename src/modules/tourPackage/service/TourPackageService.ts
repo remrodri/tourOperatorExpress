@@ -11,6 +11,7 @@ import { DeleteTourPackageDto } from "../dto/DeleteTourPackageDto";
 import { TourPackageCreatedVo } from "../vo/tourPackageCreatedVo";
 import { ClientSession } from "mongoose";
 import { UpdateTourPackageDto } from "../dto/UpdateTourPackageDto";
+import { TourPackageWithDRVo } from "../vo/TourPackageWithDRVo";
 
 export class TourPackageService implements ITourPackageService {
   private readonly tourPackageRepository: ITourPackageRepository;
@@ -23,6 +24,99 @@ export class TourPackageService implements ITourPackageService {
     this.tourPackageRepository = tourPackageRepository;
     this.dateRangeService = dateRangeService;
   }
+  async getAllTourPackagesWithDateRangesInfo(): Promise<TourPackageVo[]> {
+    try {
+      const tourPackages = await this.tourPackageRepository.getAllDB();
+      // console.log("tourPackages::: ", tourPackages);
+
+      if (!tourPackages || tourPackages.length === 0) {
+        return [];
+      }
+
+      const tpsWithDateRangeInfo = await Promise.all(
+        tourPackages.map(async (tourPackage) => {
+          const dateRangeIds = tourPackage.dateRanges.map((dr) =>
+            dr._id.toString()
+          );
+          const dateRangesInfo = await Promise.all(
+            dateRangeIds.map(async (id) => {
+              return this.dateRangeService.findById(id);
+            })
+          );
+          return { ...tourPackage.toObject(), dateRanges: dateRangesInfo };
+        })
+      );
+      // console.log("tpsWithDateRangeInfo::: ", tpsWithDateRangeInfo);
+      // tpsWithDateRangeInfo.forEach((tp) => console.log("tp.dateRanges::: ", tp.dateRanges));
+
+      const vos = tpsWithDateRangeInfo.map(
+        (tourPackage) =>
+          new TourPackageWithDRVo(
+            tourPackage._id.toString(),
+            tourPackage.name,
+            tourPackage.tourType.toString(),
+            tourPackage.cancellationPolicy.toString(),
+            tourPackage.touristDestination.toString(),
+            tourPackage.duration,
+            tourPackage.dateRanges,
+            tourPackage.price,
+            {
+              days: tourPackage.itinerary.days.map((day: any) => ({
+                dayNumber: day.dayNumber,
+                activities: day.activities.map((activity: any) => ({
+                  description: activity.description,
+                  time: activity.time,
+                })),
+              })),
+            },
+            tourPackage.status
+          )
+      );
+      return vos;
+    } catch (error) {
+      console.error("Error getting all tour packages:", error);
+      throw new HttpException(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Error al obtener paquetes turísticos"
+      );
+    }
+  }
+
+  async addDateRangeToTourPackage(
+    id: string,
+    dateRangeId: string
+  ): Promise<TourPackageVo> {
+    const tpFound = await this.tourPackageRepository.findByIdDB(id);
+    if (!tpFound) {
+      throw new HttpException(StatusCodes.NOT_FOUND, "Tour package not found");
+    }
+    const tpUpdated =
+      await this.tourPackageRepository.addDateRangeToTourPackage(
+        id,
+        dateRangeId
+      );
+    if (!tpUpdated) {
+      throw new HttpException(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Error adding date range to tour package"
+      );
+    }
+    return new TourPackageVo(
+      tpUpdated._id.toString(),
+      tpUpdated.name,
+      tpUpdated.tourType.toString(),
+      tpUpdated.cancellationPolicy.toString(),
+      tpUpdated.touristDestination.toString(),
+      tpUpdated.duration,
+      tpUpdated.dateRanges.map((dr) => {
+        return { id: dr._id.toString() };
+      }),
+      tpUpdated.price,
+      tpUpdated.itinerary,
+      tpUpdated.status
+    );
+  }
+
   async delete(dto: DeleteTourPackageDto): Promise<TourPackageVo> {
     const tpFound = await this.tourPackageRepository.findByIdDB(dto.id);
     if (!tpFound) {
@@ -50,10 +144,10 @@ export class TourPackageService implements ITourPackageService {
       tpDeleted.status
     );
   }
-  async createAllData(dto:TourPackageDto): Promise<TourPackageCreatedVo> {
+  async createAllData(dto: TourPackageDto): Promise<TourPackageCreatedVo> {
     try {
       return await this.tourPackageRepository.createWithTransaction(
-        async (session:ClientSession)=>{
+        async (session: ClientSession) => {
           if (!session) {
             throw new Error("Session is required for transaction");
           }
@@ -62,10 +156,11 @@ export class TourPackageService implements ITourPackageService {
             dto.dateRanges.map(async (dateRange) => {
               const dateRangeDto: DateRangeDto = {
                 dates: dateRange.dates,
-                state: "activo",
+                state: "pending",
                 guides: dateRange.guides,
               };
-              return await this.dateRangeService.create(dateRangeDto);
+              // return await this.dateRangeService.create(dateRangeDto);
+              return await this.dateRangeService.createWithSession(dateRangeDto, session);
             })
           );
           const tourPackageToCreate = {
@@ -83,13 +178,14 @@ export class TourPackageService implements ITourPackageService {
             );
           }
           const updatedDateRanges = await Promise.all(
-            dateRanges.map(async(dateRange)=>{
+            dateRanges.map(async (dateRange) => {
               return await this.dateRangeService.addTourPackageIdToDateRange(
                 dateRange.id.toString(),
                 tourPackageDoc._id.toString(),
-                session)
+                session
+              );
             })
-          )
+          );
           return new TourPackageCreatedVo(
             tourPackageDoc._id.toString(),
             tourPackageDoc.name,
@@ -102,9 +198,8 @@ export class TourPackageService implements ITourPackageService {
             tourPackageDoc.itinerary,
             tourPackageDoc.status
           );
-
         }
-      )
+      );
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
@@ -115,76 +210,76 @@ export class TourPackageService implements ITourPackageService {
       );
     }
   }
-  async createTourPackage(dto: TourPackageDto): Promise<TourPackageVo> {
-    try {
-      // Process date ranges
-      const dateRanges = await Promise.all(
-        dto.dateRanges.map(async (range) => {
-          const dateRangeDto: DateRangeDto = {
-            dates: range.dates,
-            state: "activo",
-            guides: range.guides,
-          };
-          const dateRangeVo = await this.dateRangeService.create(dateRangeDto);
-          // return { id: dateRangeVo.id };
-          return dateRangeVo.id;
-          // return dateRangeVo;
-        })
-      );
+  // async createTourPackage(dto: TourPackageDto): Promise<TourPackageVo> {
+  //   try {
+  //     // Process date ranges
+  //     const dateRanges = await Promise.all(
+  //       dto.dateRanges.map(async (range) => {
+  //         const dateRangeDto: DateRangeDto = {
+  //           dates: range.dates,
+  //           state: "pending",
+  //           guides: range.guides,
+  //         };
+  //         const dateRangeVo = await this.dateRangeService.create(dateRangeDto);
+  //         // return { id: dateRangeVo.id };
+  //         return dateRangeVo.id;
+  //         // return dateRangeVo;
+  //       })
+  //     );
 
-      // Create the tour package with date range references
-      const tourPackageData = {
-        ...dto,
-        dateRanges: dateRanges,
-      };
+  //     // Create the tour package with date range references
+  //     const tourPackageData = {
+  //       ...dto,
+  //       dateRanges: dateRanges,
+  //     };
 
-      const createdTourPackage = await this.tourPackageRepository.createDB(
-        tourPackageData
-      );
+  //     const createdTourPackage = await this.tourPackageRepository.createDB(
+  //       tourPackageData
+  //     );
 
-      if (!createdTourPackage) {
-        throw new HttpException(
-          StatusCodes.INTERNAL_SERVER_ERROR,
-          "Error al crear paquete turístico"
-        );
-      }
-      // const drs = createdTourPackage.dateRanges.map((dr) => dr._id.toString());
+  //     if (!createdTourPackage) {
+  //       throw new HttpException(
+  //         StatusCodes.INTERNAL_SERVER_ERROR,
+  //         "Error al crear paquete turístico"
+  //       );
+  //     }
+  //     // const drs = createdTourPackage.dateRanges.map((dr) => dr._id.toString());
 
-      return new TourPackageVo(
-        createdTourPackage._id.toString(),
-        createdTourPackage.name,
-        createdTourPackage.tourType.toString(),
-        createdTourPackage.cancellationPolicy.toString(),
-        createdTourPackage.touristDestination.toString(),
-        createdTourPackage.duration,
-        // createdTourPackage.dateRanges,
-        // createdTourPackage.dateRanges.map((dr) => dr._id.toString()),
-        createdTourPackage.dateRanges.map((dr) => {
-          return { id: dr._id.toString() };
-        }),
-        createdTourPackage.price,
-        {
-          days: createdTourPackage.itinerary.days.map((day) => ({
-            dayNumber: day.dayNumber,
-            activities: day.activities.map((activity) => ({
-              description: activity.description,
-              time: activity.time,
-            })),
-          })),
-        },
-        createdTourPackage.status
-      );
-    } catch (error) {
-      console.error("Error creating tour package:", error);
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new HttpException(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Error al crear paquete turístico"
-      );
-    }
-  }
+  //     return new TourPackageVo(
+  //       createdTourPackage._id.toString(),
+  //       createdTourPackage.name,
+  //       createdTourPackage.tourType.toString(),
+  //       createdTourPackage.cancellationPolicy.toString(),
+  //       createdTourPackage.touristDestination.toString(),
+  //       createdTourPackage.duration,
+  //       // createdTourPackage.dateRanges,
+  //       // createdTourPackage.dateRanges.map((dr) => dr._id.toString()),
+  //       createdTourPackage.dateRanges.map((dr) => {
+  //         return { id: dr._id.toString() };
+  //       }),
+  //       createdTourPackage.price,
+  //       {
+  //         days: createdTourPackage.itinerary.days.map((day) => ({
+  //           dayNumber: day.dayNumber,
+  //           activities: day.activities.map((activity) => ({
+  //             description: activity.description,
+  //             time: activity.time,
+  //           })),
+  //         })),
+  //       },
+  //       createdTourPackage.status
+  //     );
+  //   } catch (error) {
+  //     console.error("Error creating tour package:", error);
+  //     if (error instanceof HttpException) {
+  //       throw error;
+  //     }
+  //     throw new HttpException(
+  //       StatusCodes.INTERNAL_SERVER_ERROR,
+  //       "Error al crear paquete turístico"
+  //     );
+  //   }
+  // }
 
   async update(id: string, dto: UpdateTourPackageDto): Promise<TourPackageVo> {
     try {
@@ -261,7 +356,7 @@ export class TourPackageService implements ITourPackageService {
 
   async getAllTourPackages(): Promise<TourPackageVo[]> {
     try {
-      const tourPackages = await this.tourPackageRepository.geatAllDB();
+      const tourPackages = await this.tourPackageRepository.getAllDB();
       // console.log("tourPackages::: ", tourPackages);
 
       if (!tourPackages || tourPackages.length === 0) {

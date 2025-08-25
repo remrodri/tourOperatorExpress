@@ -7,14 +7,23 @@ import { DateRangeVo } from "../vo/DateRangeVo";
 import { IDateRangeService } from "./IDateRangeService";
 import { StatusCodes } from "http-status-codes";
 import { UpdateDateRangeDto } from "../dto/UpdateDateRangeDto";
+import { ITourPackageService } from "src/modules/tourPackage/service/ITourPackageService";
 
 export class DateRangeService implements IDateRangeService {
   private readonly dateRangeRepository: IDateRangeRepository;
+  private readonly tourPackageService: ITourPackageService;
 
-  constructor(dateRangeRepository: IDateRangeRepository) {
+  constructor(
+    dateRangeRepository: IDateRangeRepository,
+    tourPackageService: ITourPackageService
+  ) {
     this.dateRangeRepository = dateRangeRepository;
+    this.tourPackageService = tourPackageService;
   }
-  async updateDateRange(id: string, dto: UpdateDateRangeDto): Promise<DateRangeVo> {
+  async updateDateRange(
+    id: string,
+    dto: UpdateDateRangeDto
+  ): Promise<DateRangeVo> {
     const drFound = await this.dateRangeRepository.findByIdDB(id);
     if (!drFound) {
       throw new HttpException(StatusCodes.NOT_FOUND, "DateRange not found");
@@ -26,6 +35,7 @@ export class DateRangeService implements IDateRangeService {
         "Error updating DateRange"
       );
     }
+
     return new DateRangeVo(
       drUpdated._id.toString(),
       drUpdated.dates,
@@ -34,12 +44,21 @@ export class DateRangeService implements IDateRangeService {
       drUpdated.tourPackageId
     );
   }
-  async addTourPackageIdToDateRange(id: string, tourPackageId: string, session?: ClientSession): Promise<DateRangeVo> {
-    const drFound = await this.dateRangeRepository.findByIdDB(id);
+  async addTourPackageIdToDateRange(
+    id: string,
+    tourPackageId: string,
+    session?: ClientSession
+  ): Promise<DateRangeVo> {
+    const drFound = await this.dateRangeRepository.findByIdDB(id, session);
     if (!drFound) {
       throw new HttpException(StatusCodes.NOT_FOUND, "DateRange not found");
     }
-    const drUpdated = await this.dateRangeRepository.addTourPackageIdToDateRange(id, tourPackageId, session);
+    const drUpdated =
+      await this.dateRangeRepository.addTourPackageIdToDateRange(
+        id,
+        tourPackageId,
+        session
+      );
     if (!drUpdated) {
       throw new HttpException(
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -55,14 +74,13 @@ export class DateRangeService implements IDateRangeService {
     );
   }
   async createWithSession(
-    dto: DateRangeDto, 
+    dto: DateRangeDto,
     session: ClientSession
   ): Promise<DateRangeVo> {
     try {
-      const response = await this.dateRangeRepository.createDB(
-        dto, 
-        session
-      );
+      // console.log('dto::: ', dto);
+      const response = await this.dateRangeRepository.createDB(dto, session);
+      console.log("response::: ", response);
       if (!response) {
         throw new HttpException(
           StatusCodes.INTERNAL_SERVER_ERROR,
@@ -90,28 +108,51 @@ export class DateRangeService implements IDateRangeService {
   async getAll(): Promise<DateRangeVo[]> {
     const dateRanges = await this.dateRangeRepository.getAllDB();
     const vos = dateRanges.map(
-      (dr: IDateRange) => new DateRangeVo(dr._id.toString(), dr.dates, dr.state,dr.guides,dr.tourPackageId)
+      (dr: IDateRange) =>
+        new DateRangeVo(
+          dr._id.toString(),
+          dr.dates,
+          dr.state,
+          dr.guides,
+          dr.tourPackageId
+        )
     );
     return vos;
   }
   async create(dto: DateRangeDto): Promise<DateRangeVo> {
-    const response = await this.dateRangeRepository.createDB(dto);
-    if (!response) {
+    const dateRangeDoc = await this.dateRangeRepository.createDB(dto);
+    if (!dateRangeDoc) {
       throw new HttpException(
         StatusCodes.INTERNAL_SERVER_ERROR,
         "Internal server error"
       );
     }
+    const tourPackageDoc = await this.tourPackageService.findById(
+      dateRangeDoc.tourPackageId
+    );
+    if (!tourPackageDoc) {
+      throw new HttpException(StatusCodes.NOT_FOUND, "TourPackage not found");
+    }
+
+    await this.tourPackageService.addDateRangeToTourPackage(
+      tourPackageDoc.id,
+      dateRangeDoc._id.toString()
+    );
+
     const vo = new DateRangeVo(
-      response._id.toString(),
-      response.dates,
-      response.state,
-      response.guides,
-      response.tourPackageId
+      dateRangeDoc._id.toString(),
+      dateRangeDoc.dates,
+      dateRangeDoc.state,
+      dateRangeDoc.guides,
+      dateRangeDoc.tourPackageId
     );
     return vo;
   }
-  async update(id: string, dto: Partial<DateRangeDto>, session?: ClientSession): Promise<DateRangeVo> {
+  async update(
+    id: string,
+    dto: Partial<DateRangeDto>,
+    session?: ClientSession
+  ): Promise<DateRangeVo> {
     const drFound = await this.dateRangeRepository.findByIdDB(id);
     if (!drFound) {
       throw new HttpException(StatusCodes.NOT_FOUND, "DateRange not found");

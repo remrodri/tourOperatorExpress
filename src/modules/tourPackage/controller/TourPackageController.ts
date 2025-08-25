@@ -55,7 +55,21 @@ export class TourPackageController {
   async getAllTourPackages(req: Request, res: Response, next: NextFunction) {
     try {
       const vos = await this.tourPackageService.getAllTourPackages();
-      // console.log('vos::: ', vos);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setMessage("Tour packages found succesfully")
+        .setData(vos)
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAllTourPackagesWithDateRangesInfo(req: Request, res: Response, next: NextFunction) {
+    try {
+      const vos = await this.tourPackageService.getAllTourPackagesWithDateRangesInfo();
+      // vos.forEach((vo) => console.log("vo.dateRanges::: ", vo.dateRanges));
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
         .setMessage("Tour packages found succesfully")

@@ -7,6 +7,12 @@ import { TouristRepository } from "../modules/tourist/repository/TouristReposito
 import { BookingRepository } from "../modules/booking/repository/BookingRepository";
 import { PaymentController } from "../modules/payment/controller/PaymentController";
 import { BookingController } from "../modules/booking/controller/bookingController";
+import { TourPackageService } from "../modules/tourPackage/service/TourPackageService";
+import { TourPackageRepository } from "../modules/tourPackage/repository/TourPackageRepository";
+import { DateRangeService } from "../modules/dateRange/service/DateRangeService";
+import { DateRangeRepository } from "../modules/dateRange/repository/DateRangeRepository";
+import { DateRangeController } from "../modules/dateRange/controller/DateRangeController";
+import { TourPackageController } from "../modules/tourPackage/controller/TourPackageController";
 
 function setupDI() {
 
@@ -23,6 +29,14 @@ function setupDI() {
   container.register(
     "bookingRepository", 
     () => new BookingRepository());
+  
+  container.register(
+    "tourPackageRepository", 
+    () => new TourPackageRepository());
+
+  container.register(
+    "dateRangeRepository", 
+    () => new DateRangeRepository());
 
   container.register(
     'touristService', 
@@ -59,6 +73,36 @@ function setupDI() {
     'bookingController', 
     (c) => new BookingController(
       c.get('bookingService')
+    )
+  )
+
+  container.register(
+    'tourPackageService', 
+    (c) => new TourPackageService(
+      c.get('tourPackageRepository'),
+      c.getLazy('dateRangeService')
+    )
+  )
+
+  container.register(
+    'dateRangeService', 
+    (c) => new DateRangeService(
+      c.get('dateRangeRepository'),
+      c.getLazy('tourPackageService')
+    )
+  )
+
+  container.register(
+    'dateRangeController', 
+    (c) => new DateRangeController(
+      c.get('dateRangeService')
+    )
+  )
+
+  container.register(
+    'tourPackageController', 
+    (c) => new TourPackageController(
+      c.get('tourPackageService')
     )
   )
 
