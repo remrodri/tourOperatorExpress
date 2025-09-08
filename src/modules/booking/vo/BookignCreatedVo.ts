@@ -16,6 +16,9 @@ export class BookingCreatedVo {
     public readonly attendance: {
       touristId: string;
       status: string;
-    }[]
+    }[],
+    public readonly cancellationFee: number,
+    public readonly refundAmount: number,
+    public readonly refundedAt: string,
   ) {}
 }

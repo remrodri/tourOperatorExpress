@@ -6,14 +6,38 @@ import { StatusCodes } from "http-status-codes";
 import { UpdateBookingDto } from "../dto/UpdateBookingDto";
 import { UpdateAllDataBookingDto } from "../dto/UpdateAllDataBooking";
 import path from "path";
-import fs from "fs"
+import fs from "fs";
 import { BookingUpdatedVo } from "../vo/BookingUpdatedVo";
 import { UpdateBookingAttendanceListsDto } from "../dto/UpdateBookingAttendanceListsDto";
+import { CancelBookingDto } from "../dto/CancelBookingDto";
 
 export class BookingController {
   private readonly bookingService: IBookingService;
   constructor(bookingService: IBookingService) {
     this.bookingService = bookingService;
+  }
+  async cancelBooking(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const id = req.params.id;
+      // console.log('id::: ', id);
+      // console.log('req.body::: ', req.body);
+      const dto = CancelBookingDto.parse(req.body);
+      // console.log("dto::: ", dto);
+      const vo = await this.bookingService.cancelBooking(id,dto);
+      console.log('vo::: ', vo);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setData(vo)
+        .setMessage("booking cancelled successfully")
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
   }
 
   async updateBookingAttendanceLists(
@@ -47,7 +71,10 @@ export class BookingController {
       const id = req.params.id;
       // console.log('dto::: ', dto);
       // console.log('id::: ', id);
-      const vo:BookingUpdatedVo = await this.bookingService.updateAllData(dto,id);
+      const vo: BookingUpdatedVo = await this.bookingService.updateAllData(
+        dto,
+        id
+      );
       // console.log('vo::: ', vo);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
@@ -68,9 +95,9 @@ export class BookingController {
     try {
       const { paymentProofFolder } = req.body;
       const file = req.file;
-      
+
       let finalFilePath = "";
-      
+
       if (file && paymentProofFolder) {
         // Crear la carpeta final
         const finalDir = path.join(
@@ -78,31 +105,31 @@ export class BookingController {
           "../../../../uploads/paymentProofs",
           paymentProofFolder
         );
-        
+
         if (!fs.existsSync(finalDir)) {
           fs.mkdirSync(finalDir, { recursive: true });
         }
-        
+
         // Generar nombre del archivo
         const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
         const fileExtension = path.extname(file.originalname).toLowerCase();
         const fileName = `paymentProof-${uniqueSuffix}${fileExtension}`;
         const fullPath = path.join(finalDir, fileName);
-        
+
         // Escribir el archivo desde el buffer de memoria
         fs.writeFileSync(fullPath, file.buffer);
-        
+
         // Ruta relativa para guardar en BD
         finalFilePath = `/uploads/paymentProofs/${paymentProofFolder}/${fileName}`;
       }
       // finalFilePath = finalFilePath || "";
-      
+
       // El resto de tu lógica...
       const bookingData = {
         // ... otros campos
         paymentProofImage: finalFilePath,
         tourPackageId: req.body.tourPackageId,
-        dateRangeId:req.body.dateRangeId,
+        dateRangeId: req.body.dateRangeId,
         sellerId: req.body.sellerId,
         status: req.body.status,
         totalPrice: Number(req.body.totalPrice),
@@ -111,7 +138,7 @@ export class BookingController {
         firstPayment: JSON.parse(req.body.firstPayment),
         paymentProofFolder: paymentProofFolder,
       };
-      
+
       // console.log('bookingData::: ', bookingData);
       const dto = CreateBookingDto.parse(bookingData);
       // console.log('dto::: ', dto);
@@ -123,14 +150,11 @@ export class BookingController {
         .setMessage("booking created successfully")
         .build();
       res.status(StatusCodes.OK).json(response);
-      
     } catch (error) {
       console.error("Error in createBooking::: ", error);
       next(error);
     }
   }
-
-  
 
   // async createBooking(
   //   req: Request,

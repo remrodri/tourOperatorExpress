@@ -23,6 +23,10 @@ tourPackageRouter.put("/tour-package/:id", (req, res, next) =>
   tourPackageController.updateTourPackage(req, res, next)
 );
 
+tourPackageRouter.put("/tour-package-status/:id", (req, res, next) =>
+  tourPackageController.updateTourPackageStatus(req, res, next)
+);
+
 tourPackageRouter.post("/tour-package", (req, res, next) =>
   tourPackageController.createTourPackage(req, res, next)
 );
@@ -37,5 +41,7 @@ tourPackageRouter.get("/tour-package", (req, res, next) =>
 tourPackageRouter.delete("/tour-package/:id", (req, res, next) =>
   tourPackageController.deleteTourPackage(req, res, next)
 );
+
+
 
 export default tourPackageRouter;

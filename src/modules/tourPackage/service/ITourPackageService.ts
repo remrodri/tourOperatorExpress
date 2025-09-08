@@ -14,4 +14,5 @@ export interface ITourPackageService {
   findById(id: string): Promise<TourPackageVo>;
   addDateRangeToTourPackage(id: string, dateRangeId: string): Promise<TourPackageVo>;
   getAllTourPackagesWithDateRangesInfo(): Promise<TourPackageVo[]>;
+  updateStatus(id: string, dto: UpdateTourPackageDto): Promise<{id:string;status:string}>;
 }
