@@ -16,6 +16,9 @@ export class BookingVoV2 {
       touristId:string,
       status:"present" | "absent"
     }[],
-    public readonly createdAt:string
+    public readonly createdAt: string,
+    public readonly cancellationFee: number,
+    public readonly refundAmount: number,
+    public readonly refundedAt: string,
   ) {}
 }

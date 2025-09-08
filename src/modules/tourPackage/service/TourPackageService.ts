@@ -24,6 +24,23 @@ export class TourPackageService implements ITourPackageService {
     this.tourPackageRepository = tourPackageRepository;
     this.dateRangeService = dateRangeService;
   }
+  async updateStatus(
+    id: string,
+    dto: UpdateTourPackageDto
+  ): Promise<{ id: string; status: string }> {
+    const tpFound = await this.tourPackageRepository.findByIdDB(id);
+    if (!tpFound) {
+      throw new HttpException(StatusCodes.NOT_FOUND, "Tour package not found");
+    }
+    const tpUpdated = await this.tourPackageRepository.updateDB(id, dto);
+    if (!tpUpdated) {
+      throw new HttpException(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Error updating tour package"
+      );
+    }
+    return { id: tpUpdated._id.toString(), status: tpUpdated.status };
+  }
   async getAllTourPackagesWithDateRangesInfo(): Promise<TourPackageVo[]> {
     try {
       const tourPackages = await this.tourPackageRepository.getAllDB();
@@ -160,7 +177,10 @@ export class TourPackageService implements ITourPackageService {
                 guides: dateRange.guides,
               };
               // return await this.dateRangeService.create(dateRangeDto);
-              return await this.dateRangeService.createWithSession(dateRangeDto, session);
+              return await this.dateRangeService.createWithSession(
+                dateRangeDto,
+                session
+              );
             })
           );
           const tourPackageToCreate = {

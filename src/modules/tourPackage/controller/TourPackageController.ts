@@ -14,6 +14,27 @@ export class TourPackageController {
     this.tourPackageService = tourPackageService;
   }
 
+  async updateTourPackageStatus(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id } = req.params;
+      // const dto = UpdateTourPackageDto.parse(req.body);
+      const dto = req.body;
+      const vo = await this.tourPackageService.updateStatus(id, dto);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setMessage("Updated successfully")
+        .setData(vo)
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async deleteTourPackage(req: Request, res: Response, next: NextFunction) {
     try {
       // const { id } = req.params;
@@ -66,9 +87,14 @@ export class TourPackageController {
     }
   }
 
-  async getAllTourPackagesWithDateRangesInfo(req: Request, res: Response, next: NextFunction) {
+  async getAllTourPackagesWithDateRangesInfo(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
-      const vos = await this.tourPackageService.getAllTourPackagesWithDateRangesInfo();
+      const vos =
+        await this.tourPackageService.getAllTourPackagesWithDateRangesInfo();
       // vos.forEach((vo) => console.log("vo.dateRanges::: ", vo.dateRanges));
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)

@@ -61,6 +61,18 @@ const BookingSchema: Schema = new Schema(
         },
       },
     ],
+    cancellationFee: {
+      type: Schema.Types.Number,
+      default: 0,
+    },
+    refundAmount: {
+      type: Schema.Types.Number,
+      default: 0,
+    },
+    refundedAt: {
+      type: Schema.Types.Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

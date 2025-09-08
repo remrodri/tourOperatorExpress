@@ -13,5 +13,9 @@ export interface IBooking extends Document<Types.ObjectId> {
   attendance:{
     touristId:Types.ObjectId,
     status:"present" | "absent"
-  }[]
+  }[],
+  cancellationFee: number,
+  refundAmount: number,
+  refundedAt: string,
+  
 }

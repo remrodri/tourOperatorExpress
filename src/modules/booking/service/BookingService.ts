@@ -19,6 +19,7 @@ import { BookingVoV2 } from "../vo/BookingVoV2";
 import { IPayment } from "src/modules/payment/model/IPayment";
 import { UpdateBookingAttendanceListsDto } from "../dto/UpdateBookingAttendanceListsDto";
 import { BookingUpdatedAttendanceVo } from "../vo/BookingUpdatedAttendanceVo";
+import { CancelBookingDto } from "../dto/CancelBookingDto";
 
 export class BookingService implements IBookingService {
   private readonly touristService: ITouristService;
@@ -34,42 +35,78 @@ export class BookingService implements IBookingService {
     this.paymentService = paymentService;
     this.bookingRepository = bookingRespository;
   }
+  async cancelBooking(id: string, dto: CancelBookingDto): Promise<any> {
+    try {
+      const bookingDoc = await this.bookingRepository.getByIdDB(id);
+      if (!bookingDoc) {
+        throw new Error("Booking not found");
+      }
+      const updatedBookingDoc = await this.bookingRepository.updateDB(id, dto);
+      return {
+        id: updatedBookingDoc._id.toString(),
+        cancellationFee: updatedBookingDoc.cancellationFee,
+        refundAmount: updatedBookingDoc.refundAmount,
+        refundedAt: updatedBookingDoc.refundedAt,
+        status: updatedBookingDoc.status,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Error al cancelar el booking: ${error.message}`);
+      } else {
+        throw new Error("Error desconocido al cancelar el booking");
+      }
+    }
+  }
   async updateBookingAttendanceLists(
     dto: UpdateBookingAttendanceListsDto
   ): Promise<BookingUpdatedAttendanceVo[]> {
     try {
-      const updatedBookings = await this.bookingRepository.updateBookingAttendanceLists(
-        async (session) => {
-          const results: BookingUpdatedAttendanceVo[] = [];
-  
-          for (const attList of dto) {
-            const bookingDoc = await this.bookingRepository.getByIdDB(attList.bookingId, session);
-            if (!bookingDoc) {
-              throw new Error(`Booking not found for ID: ${attList.bookingId}`);
-            }
-  
-            // Actualizamos o insertamos asistencia
-            for (const att of attList.attendance) {
-              const existing = bookingDoc.attendance.find((a) =>
-                a.touristId.toString() === att.touristId
+      const updatedBookings =
+        await this.bookingRepository.updateBookingAttendanceLists(
+          async (session) => {
+            const results: BookingUpdatedAttendanceVo[] = [];
+
+            for (const attList of dto) {
+              const bookingDoc = await this.bookingRepository.getByIdDB(
+                attList.bookingId,
+                session
               );
-  
-              if (existing) {
-                existing.status = att.status;
-              } else {
-                bookingDoc.attendance.push({ touristId: new Types.ObjectId(att.touristId), status: att.status });
+              if (!bookingDoc) {
+                throw new Error(
+                  `Booking not found for ID: ${attList.bookingId}`
+                );
               }
+
+              // Actualizamos o insertamos asistencia
+              for (const att of attList.attendance) {
+                const existing = bookingDoc.attendance.find(
+                  (a) => a.touristId.toString() === att.touristId
+                );
+
+                if (existing) {
+                  existing.status = att.status;
+                } else {
+                  bookingDoc.attendance.push({
+                    touristId: new Types.ObjectId(att.touristId),
+                    status: att.status,
+                  });
+                }
+              }
+
+              await bookingDoc.save({ session });
+
+              results.push(
+                new BookingUpdatedAttendanceVo(
+                  attList.bookingId,
+                  attList.attendance
+                )
+              );
             }
-  
-            await bookingDoc.save({ session });
-  
-            results.push(new BookingUpdatedAttendanceVo(attList.bookingId, attList.attendance));
+
+            return results;
           }
-  
-          return results;
-        }
-      );
-  
+        );
+
       return updatedBookings;
     } catch (error) {
       if (error instanceof Error) {
@@ -79,25 +116,27 @@ export class BookingService implements IBookingService {
       }
     }
   }
-  
 
   async getById(id: string, session?: ClientSession): Promise<BookingVo> {
-try {
-  const bookingDoc = await this.bookingRepository.getByIdDB(id, session);
-  if (!bookingDoc) {
-    throw new Error("Booking not found");
+    try {
+      const bookingDoc = await this.bookingRepository.getByIdDB(id, session);
+      if (!bookingDoc) {
+        throw new Error("Booking not found");
+      }
+      return this.mapToVo(bookingDoc);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Error al obtener booking: ${error.message}`);
+      } else {
+        throw new Error("Error desconocido al obtener booking");
+      }
+    }
   }
-  return this.mapToVo(bookingDoc);
-} catch (error) {
-  if (error instanceof Error) {
-    throw new Error(`Error al obtener booking: ${error.message}`);
-  } else {
-    throw new Error("Error desconocido al obtener booking");
-  }
-}
-  }
-  async updateAllData(dto: UpdateAllDataBookingDto,id:string): Promise<BookingUpdatedVo> {
-    let touristIds:string[] = [];
+  async updateAllData(
+    dto: UpdateAllDataBookingDto,
+    id: string
+  ): Promise<BookingUpdatedVo> {
+    let touristIds: string[] = [];
     try {
       const booking = await this.bookingRepository.updateWithTransaction(
         async (session) => {
@@ -116,26 +155,32 @@ try {
 
           const touristVos = await Promise.all(
             dto.tourists.map(async (tourist) => {
-              
-            const touristData = {
-              firstName:tourist.firstName,
-              lastName:tourist.lastName,
-              email:tourist.email,
-              phone:tourist.phone,
-              nationality:tourist.nationality,
-              documentType:tourist.documentType,
-              ci:tourist.ci,
-              dateOfBirth:tourist.dateOfBirth,
-              passportNumber:tourist.passportNumber,
-            }
-            if(tourist.id!==""){
-              return await this.touristService.update(tourist.id, touristData, session)
-            }
-              const createdTourist = await this.touristService.create({...touristData,bookingIds:[id]}, session)
+              const touristData = {
+                firstName: tourist.firstName,
+                lastName: tourist.lastName,
+                email: tourist.email,
+                phone: tourist.phone,
+                nationality: tourist.nationality,
+                documentType: tourist.documentType,
+                ci: tourist.ci,
+                dateOfBirth: tourist.dateOfBirth,
+                passportNumber: tourist.passportNumber,
+              };
+              if (tourist.id !== "") {
+                return await this.touristService.update(
+                  tourist.id,
+                  touristData,
+                  session
+                );
+              }
+              const createdTourist = await this.touristService.create(
+                { ...touristData, bookingIds: [id] },
+                session
+              );
               // console.log('createdTourist::: ', createdTourist);
-              touristIds.push(createdTourist.id)
-              return createdTourist
-          })
+              touristIds.push(createdTourist.id);
+              return createdTourist;
+            })
           );
           // console.log('touristVos::: ', touristVos);
           filteredUpdatedTouristVos = touristVos.filter(
@@ -144,11 +189,11 @@ try {
           // console.log('filteredUpdatedTouristVos::: ', filteredUpdatedTouristVos);
 
           const bookingData = {
-            touristsIds: [...bookingDoc.touristsIds,...touristIds],
+            touristsIds: [...bookingDoc.touristsIds, ...touristIds],
             notes: dto.notes,
             status: dto.status,
             totalPrice: dto.totalPrice,
-          }
+          };
           // console.log('bookingData::: ', bookingData);
           const updatedBookingDoc = await this.bookingRepository.updateDB(
             id,
@@ -156,7 +201,10 @@ try {
             session
           );
           // console.log('updatedBookingDoc::: ', updatedBookingDoc);
-          return this.mapToUpdatedVo(updatedBookingDoc,filteredUpdatedTouristVos);
+          return this.mapToUpdatedVo(
+            updatedBookingDoc,
+            filteredUpdatedTouristVos
+          );
         }
       );
       return booking;
@@ -169,7 +217,7 @@ try {
     }
   }
   mapToUpdatedVo(
-    updatedBookingDoc: IBooking, 
+    updatedBookingDoc: IBooking,
     updatedTouristVos: TouristVo[]
   ): BookingUpdatedVo | PromiseLike<BookingUpdatedVo> {
     return new BookingUpdatedVo(
@@ -177,10 +225,9 @@ try {
       updatedTouristVos.reverse(),
       updatedBookingDoc.notes,
       updatedBookingDoc.status,
-      updatedBookingDoc.totalPrice,
+      updatedBookingDoc.totalPrice
     );
   }
-
 
   async update(
     id: string,
@@ -228,36 +275,39 @@ try {
     }
   }
 
-  private mapToVoV2(bookingDoc:any):BookingVoV2{
+  private mapToVoV2(bookingDoc: any): BookingVoV2 {
     return new BookingVoV2(
       bookingDoc._id.toString(),
-      bookingDoc.touristsIds.map((tourist:any) => tourist._id.toString()),
+      bookingDoc.touristsIds.map((tourist: any) => tourist._id.toString()),
       bookingDoc.dateRangeId.toString(),
       bookingDoc.notes,
-      bookingDoc.paymentIds.map((payment:any) => {
+      bookingDoc.paymentIds.map((payment: any) => {
         return {
-          id:payment._id.toString(),
-          amount:payment.amount,
-          paymentDate:payment.paymentDate,
-          paymentMethod:payment.paymentMethod,
-          bookingId:payment.bookingId,
-          touristId:payment.touristId,
-          paymentProofImage:payment.paymentProofImage,
-          sellerId:payment.sellerId,
-        }
+          id: payment._id.toString(),
+          amount: payment.amount,
+          paymentDate: payment.paymentDate,
+          paymentMethod: payment.paymentMethod,
+          bookingId: payment.bookingId,
+          touristId: payment.touristId,
+          paymentProofImage: payment.paymentProofImage,
+          sellerId: payment.sellerId,
+        };
       }),
       bookingDoc.sellerId._id.toString(),
       bookingDoc.status,
       bookingDoc.totalPrice,
       bookingDoc.tourPackageId._id.toString(),
       bookingDoc.paymentProofFolder,
-      bookingDoc.attendance.map((attendance:any) => {
+      bookingDoc.attendance.map((attendance: any) => {
         return {
           touristId: attendance.touristId.toString(),
           status: attendance.status,
         };
       }),
-      bookingDoc.createdAt.toString()
+      bookingDoc.createdAt.toString(),
+      bookingDoc.cancellationFee,
+      bookingDoc.refundAmount,
+      bookingDoc.refundedAt,
     );
   }
   private mapToVo(bookingDoc: IBooking): BookingVo {
@@ -267,14 +317,22 @@ try {
       bookingDoc.dateRangeId.toString(),
       bookingDoc.notes,
       bookingDoc.paymentIds.map((payment) => {
-        return payment._id.toString()
+        return payment._id.toString();
       }),
       bookingDoc.sellerId._id.toString(),
       bookingDoc.status,
       bookingDoc.totalPrice,
       bookingDoc.tourPackageId._id.toString(),
-      bookingDoc.paymentProofFolder
-
+      bookingDoc.paymentProofFolder,
+      bookingDoc.attendance.map((attendance: any) => {
+        return {
+          touristId: attendance.touristId.toString(),
+          status: attendance.status,
+        };
+      }),
+      bookingDoc.cancellationFee,
+      bookingDoc.refundAmount,
+      bookingDoc.refundedAt,
     );
   }
 
@@ -302,7 +360,7 @@ try {
             totalPrice: bookingDto.totalPrice,
             tourPackageId: bookingDto.tourPackageId,
             paymentProofFolder: bookingDto.paymentProofFolder,
-            attendance:touristVos.map((touristVo) => {
+            attendance: touristVos.map((touristVo) => {
               return {
                 touristId: touristVo.id,
                 status: "absent",
@@ -315,8 +373,8 @@ try {
           );
           const paymentDto = CreatePaymentDto.parse({
             ...bookingDto.firstPayment,
-            touristId:touristVos[touristVos.length - 1].id,
-            bookingId:booking.id,
+            touristId: touristVos[touristVos.length - 1].id,
+            bookingId: booking.id,
             paymentProofImage: bookingDto.paymentProofImage,
           });
           const paymentVo = await this.paymentService.create(
@@ -326,20 +384,20 @@ try {
 
           const bookingUpdated = await this.bookingRepository.updateDB(
             booking.id,
-            {paymentIds:[paymentVo.id]},
+            { paymentIds: [paymentVo.id] },
             session
           );
-          
+
           const touristsUpdated = await Promise.all(
             touristVos.map(async (tourist) => {
               return await this.touristService.addBookingToTourist(
                 tourist.id,
                 booking.id,
                 session
-              )
+              );
             })
           );
-          
+
           return this.mapToVoAllData(
             bookingUpdated,
             touristsUpdated,
@@ -377,7 +435,11 @@ try {
           touristId: attendance.touristId.toString(),
           status: attendance.status,
         };
-      })
+      }),
+      // bookingDoc.createdAt.toString(),
+      bookingDoc.cancellationFee,
+      bookingDoc.refundAmount,
+      bookingDoc.refundedAt,
     );
   }
 }
