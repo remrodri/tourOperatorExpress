@@ -27,3 +27,11 @@ export const setImageFolder = async (req: Request, res: Response, next: NextFunc
   next();
 };
 
+export function setImageFolderV2(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  req.imageFolder = uuidv4(); // todas las imágenes de esta subida irán a la misma carpeta
+  next();
+}

@@ -33,7 +33,12 @@ export class TouristDestinationRepository
   async createDB(
     dto: TouristDestinationDto
   ): Promise<ITouristDestination | null> {
-    const touristDestination = new TouristDestinationModel(dto);
-    return await touristDestination.save();
+    // console.log("dto::: ", dto);
+    const touristDestinationModel = new TouristDestinationModel(dto);
+    // console.log('touristDestination::: ', touristDestination);
+    // return await touristDestination.save();
+    const touristDestinationSaved = await touristDestinationModel.save();
+    console.log('touristDestinationSaved::: ', touristDestinationSaved);
+    return touristDestinationSaved;
   }
 }

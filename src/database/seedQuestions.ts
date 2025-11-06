@@ -35,4 +35,4 @@ async function seedQuestions(): Promise<void> {
 }
 
 // Exportar el modelo y la función de seed
-export { QuestionsModel, seedQuestions };
+export { seedQuestions };
