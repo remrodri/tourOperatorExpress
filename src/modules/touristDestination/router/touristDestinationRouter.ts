@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { TouristDestinationController } from "../controller/TouristDestinationController";
-import upload from "../../../multerTouristDestinations";
+// import upload from "../../../multerTouristDestinations";
 import { TouristDestinationService } from "../service/TouristDestinationService";
 import { TouristDestinationRepository } from "../repository/TouristDestinationRepository";
 import { setImageFolder } from "../middleware/setImageFolder";
+import { setImageFolderV2 } from "../middleware/setImageFolder";
+import upload from "../middleware/upload";
 
 const touristDestinationRepository = new TouristDestinationRepository();
 const touristDestinationService = new TouristDestinationService(
@@ -37,12 +39,16 @@ touristDestinationRouter.get("/tourist-destination", (req, res, next) =>
   touristDestinationController.getAllTouristDestination(req, res, next)
 );
 
-touristDestinationRouter.post(
-  "/tourist-destination",
-  upload.array("newImages", 5),
-  (req, res, next) =>
-    touristDestinationController.createTouristDestination(req, res, next)
-);
+// touristDestinationRouter.post(
+//   "/tourist-destination",
+//   upload.array("newImages", 5),
+//   (req, res, next) => {
+//     console.log("req::: ", req.files);
+//     next();
+//   },
+//   (req, res, next) =>
+//     touristDestinationController.createTouristDestination(req, res, next),
+// );
 
 touristDestinationRouter.put(
   "/tourist-destination/:id",
@@ -50,6 +56,14 @@ touristDestinationRouter.put(
   upload.array("newImages", 5), // multer usa ese imageFolder
   (req, res, next) =>
     touristDestinationController.updateTouristDestination(req, res, next)
+);
+
+touristDestinationRouter.post(
+  "/tourist-destination",
+  setImageFolderV2, // generar carpeta única
+  upload.array("newImages", 5), // hasta 5 imágenes
+  (req, res, next) =>
+    touristDestinationController.createTouristDestination(req, res, next)
 );
 
 export default touristDestinationRouter;

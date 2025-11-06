@@ -4,25 +4,28 @@ import { hashPassword } from "../utils/bcryptUtils";
 
 export async function seedUsers(): Promise<void> {
   try {
-    const userCount = await UserModel.countDocuments();
-    if (userCount > 0) {
-      console.log("Ya existen usuarios en la base de datos.");
+    const existingUsers = await UserModel.countDocuments();
+
+    if (existingUsers > 0) {
+      console.log("Ya existen usuarios en la base de datos, seed omitido");
       return;
     }
 
-    // Buscar los roles por nombre
-    const adminRole = await RoleModel.findOne({ name: "administrador" });
-    const operadorRole = await RoleModel.findOne({
-      name: "operador de ventas",
+    // Buscar los roles requeridos
+    const roles = await RoleModel.find({
+      name: { $in: ["administrador", "operador de ventas", "guia de turismo"] },
     });
-    const guiaRole = await RoleModel.findOne({ name: "guia de turismo" });
 
-    if (!adminRole || !operadorRole || !guiaRole) {
-      console.log(
-        "Faltan roles. Asegúrate de haber ejecutado seedRoles primero."
-      );
+    if (roles.length !== 3) {
+      console.log("Faltan roles. Ejecuta primero: seedRoles()");
       return;
     }
+
+    const adminRole = roles.find((r) => r.name === "administrador")!._id;
+    const operadorRole = roles.find(
+      (r) => r.name === "operador de ventas"
+    )!._id;
+    const guiaRole = roles.find((r) => r.name === "guia de turismo")!._id;
 
     const users = [
       {
@@ -32,7 +35,7 @@ export async function seedUsers(): Promise<void> {
         ci: "6789123 LP",
         email: "maria.quiroga@admin.bo",
         password: await hashPassword("AdminBolivia2024"),
-        role: adminRole._id,
+        role: adminRole,
         address: "Zona Sur, La Paz",
         imagePath: "/uploads/perfilImage/image-1737042598312-854757107.jpg",
       },
@@ -43,7 +46,7 @@ export async function seedUsers(): Promise<void> {
         ci: "8123456 CB",
         email: "jose.rojas@ventas.bo",
         password: await hashPassword("VentasBol2024"),
-        role: operadorRole._id,
+        role: operadorRole,
         address: "Av. Blanco Galindo, Cochabamba",
         imagePath: "/uploads/perfilImage/image-1737126818109-245359609.jpg",
       },
@@ -54,14 +57,14 @@ export async function seedUsers(): Promise<void> {
         ci: "7345678 SC",
         email: "valeria.lopez@guia.bo",
         password: await hashPassword("GuiaBol2024"),
-        role: guiaRole._id,
+        role: guiaRole,
         address: "Av. Cristo Redentor, Santa Cruz",
         imagePath: "/uploads/perfilImage/image-1737070949610-475315359.jpg",
       },
     ];
 
     await UserModel.insertMany(users);
-    console.log("Usuarios de prueba creados correctamente.");
+    console.log("Usuarios de prueba creados correctamente");
   } catch (error) {
     console.error("Error al sembrar los usuarios:", error);
   }

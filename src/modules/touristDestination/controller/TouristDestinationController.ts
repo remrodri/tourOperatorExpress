@@ -97,8 +97,7 @@ export class TouristDestinationController {
     try {
       const parsedBody = JSON.parse(JSON.stringify(req.body));
       const dto = TouristDestinationDto.parse(parsedBody);
-      // console.log("dto::: ", dto);
-
+      dto.imageFolder = req.imageFolder;
       const vo = await this.touristDestinationService.createTouristDestination(
         dto,
         req.files as Express.Multer.File[]

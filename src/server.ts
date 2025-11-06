@@ -40,6 +40,30 @@ const MONGO_URI =
 //   }
 // };
 
+// const connectDB = async () => {
+//   try {
+//     await mongoose.connect(MONGO_URI, {
+//       retryWrites: true,
+//       w: "majority",
+//     });
+//     console.log("Conectado a MongoDB Replica Set");
+
+//     // Ejecutar el sembrado de datos después de la conexión exitosa
+//     // await seedQuestions();
+//     // await seedRoles();
+//     // await seedUsers();
+//     // await seedUserQuestionsAnswers();
+//     if (process.env.RUN_SEEDS === "true") {
+//       // await seedQuestions();
+//       await seedRoles();
+//       // await seedUsers();
+//       // await seedUserQuestionsAnswers();
+//     }
+//   } catch (error) {
+//     console.error("Error conectando a MongoDB:", error);
+//     process.exit(1);
+//   }
+// };
 const connectDB = async () => {
   try {
     await mongoose.connect(MONGO_URI, {
@@ -48,16 +72,21 @@ const connectDB = async () => {
     });
     console.log("Conectado a MongoDB Replica Set");
 
-    // Ejecutar el sembrado de datos después de la conexión exitosa
-    // await seedQuestions();
-    // await seedRoles();
-    // await seedUsers();
-    // await seedUserQuestionsAnswers();
+    // Ejecutar el sembrado de datos solo si la variable está activa
+    if (process.env.RUN_SEEDS === "true") {
+      console.log("Ejecutando seeds iniciales...");
+      await seedQuestions();
+      await seedRoles();
+      await seedUsers();
+      await seedUserQuestionsAnswers();
+      console.log("Seeds ejecutados correctamente");
+    }
   } catch (error) {
     console.error("Error conectando a MongoDB:", error);
     process.exit(1);
   }
 };
+
 
 // Iniciar el servidor
 const startServer = () => {
