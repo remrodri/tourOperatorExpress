@@ -37,11 +37,11 @@ const TourPackageSchema: Schema = new Schema(
       ref: "TourType",
       required: [true, "TourType is required"],
     },
-    cancellationPolicy: {
-      type: Schema.Types.ObjectId,
-      ref: "CancellationPolicy",
-      required: [true, "CancellationPolicy is required"],
-    },
+    // cancellationPolicy: {
+    //   type: Schema.Types.ObjectId,
+    //   ref: "CancellationPolicy",
+    //   required: [true, "CancellationPolicy is required"],
+    // },
     touristDestination: {
       type: Schema.Types.ObjectId,
       ref: "TouristDestination",
