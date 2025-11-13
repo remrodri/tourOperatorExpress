@@ -26,9 +26,9 @@ const DateRangeSchema = z.object({
 export const TourPackageDto = z.object({
   name: z.string().min(3, "El nombre es requerido"),
   tourType: z.string().min(1, "El tipo de tour es requerido"),
-  cancellationPolicy: z
-    .string()
-    .min(1, "La politica de cancelacion es requerida"),
+  // cancellationPolicy: z
+  //   .string()
+  //   .min(1, "La politica de cancelacion es requerida"),
   touristDestination: z.string().min(1, "El destino turistico es requerido"),
   duration: z.number().positive("La duracion debe ser positiva"),
   dateRanges: z

@@ -4,7 +4,7 @@ import { IItinerary } from "./IItinerary";
 export interface ITourPackage extends Document<Types.ObjectId> {
   name: string;
   tourType: Types.ObjectId;
-  cancellationPolicy: Types.ObjectId;
+  // cancellationPolicy: Types.ObjectId;
   touristDestination: Types.ObjectId;
   duration: number;
   dateRanges: Types.ObjectId[];

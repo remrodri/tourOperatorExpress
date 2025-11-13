@@ -5,7 +5,7 @@ export class TourPackageWithDRVo {
     public readonly id: string,
     public readonly name: string,
     public readonly tourType: string,
-    public readonly cancellationPolicy: string,
+    // public readonly cancellationPolicy: string,
     public readonly touristDestination: string,
     public readonly duration: number,
     public readonly dateRanges: DateRangeVo[],
