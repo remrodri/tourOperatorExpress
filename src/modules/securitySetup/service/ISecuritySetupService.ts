@@ -1,5 +1,5 @@
-import { IUser } from "../../model/user/IUser";
-import { GetRandomQuestionDto } from "../dto/getRandomQuestionDto";
+// import { IUser } from "../../model/user/IUser";
+// import { GetRandomQuestionDto } from "../dto/getRandomQuestionDto";
 import { UpdateAnswersDto } from "../dto/updateAnswersDto";
 import { UpdatePasswordDto } from "../dto/updatePasswodDto";
 import { GetQuestionsDto } from "../dto/userIdDto";
@@ -12,7 +12,7 @@ export interface ISecuritySetupService {
   ): Promise<SecurityQuestionsVo | null>;
   updateSecurityAnswers(
     updateAnswersDto: UpdateAnswersDto,
-    userId: String
+    userId: string
   ): Promise<void>;
   getRandomSecurityQuestion(userId: string): Promise<any>;
   findUserByEmail(email: string): Promise<any | null>;

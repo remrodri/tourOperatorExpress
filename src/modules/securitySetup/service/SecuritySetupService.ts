@@ -4,15 +4,15 @@ import { UpdatePasswordDto } from "../dto/updatePasswodDto";
 import { ISecuritySetupRepository } from "../repository/ISecuritySetupRepository";
 import { ISecuritySetupService } from "./ISecuritySetupService";
 import { GetQuestionsDto } from "../dto/userIdDto";
-import { IUser } from "../../model/user/IUser";
-import { IUserQuestionsAnswers } from "../model/recoveryPassword/userQuestionsAnswers/IUserQuestionsAnswers";
+// import { IUser } from "../../model/user/IUser";
+// import { IUserQuestionsAnswers } from "../model/recoveryPassword/userQuestionsAnswers/IUserQuestionsAnswers";
 import { SecurityQuestionsVo } from "../vo/securityQuestionsVo";
-import { AnswerModel } from "../model/recoveryPassword/answer/answerModel";
+// import { AnswerModel } from "../model/recoveryPassword/answer/answerModel";
 import { UpdateAnswersDto } from "../dto/updateAnswersDto";
 import { IUserService } from "../../user/service/IUserService";
-import { GetRandomQuestionDto } from "../dto/getRandomQuestionDto";
+// import { GetRandomQuestionDto } from "../dto/getRandomQuestionDto";
 import { IUserQuestionsAnswersService } from "../../recoveryPassword/service/IUserQuestionsAnswersService";
-import { IQuestion } from "../model/recoveryPassword/question/IQuestion";
+// import { IQuestion } from "../model/recoveryPassword/question/IQuestion";
 
 export class SecuritySetupService implements ISecuritySetupService {
   private readonly securitySetupRepository: ISecuritySetupRepository;
