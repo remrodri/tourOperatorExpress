@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const TouristSchema = z.object({
+  id: z.string().optional(),
   firstName: z.string().min(3, "El nombre debe tener almenos 3 caracteres"),
   lastName: z.string().min(3, "El apellido debe tener almenos 3 caracteres"),
   email: z.string().email("El email no es valido"),

@@ -17,5 +17,6 @@ export class BookingVo {
     public readonly cancellationFee: number,
     public readonly refundAmount: number,
     public readonly refundedAt: string,
+    public readonly bookingCode: string,
   ) {}
 }

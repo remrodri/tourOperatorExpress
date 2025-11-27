@@ -17,5 +17,5 @@ export interface IBooking extends Document<Types.ObjectId> {
   cancellationFee: number,
   refundAmount: number,
   refundedAt: string,
-  
+  bookingCode: string,
 }
