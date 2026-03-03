@@ -13,6 +13,48 @@ export class UserController {
     this.userService = userService;
   }
 
+  async enableUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const enableUserDto = DeleteUserDto.parse(req.body);
+      // console.log("userId::: ", userId);
+      const userEnabled = await this.userService.enableUser(enableUserDto);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setMessage("Usuario habilitado exitosamente")
+        .setData(userEnabled)
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.INTERNAL_SERVER_ERROR)
+        .setMessage("Error al habilitar el usuario")
+        .build();
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(response);
+      next(error);
+    }
+  }
+
+  async disableUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const disableUserDto = DeleteUserDto.parse(req.body);
+      // console.log("userId::: ", userId);
+      const userDisabled = await this.userService.disableUser(disableUserDto);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setMessage("Usuario deshabilitado exitosamente")
+        .setData(userDisabled)
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.INTERNAL_SERVER_ERROR)
+        .setMessage("Error al deshabilitar el usuario")
+        .build();
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(response);
+      next(error);
+    }
+  }
+
   async softDeleteUser(req: Request, res: Response, next: NextFunction) {
     try {
       const deleteUserDto = DeleteUserDto.parse(req.body);

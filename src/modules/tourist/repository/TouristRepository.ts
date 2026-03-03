@@ -3,10 +3,13 @@ import { CreateTouristDto } from "../dto/CreateTouristDto";
 import { ITourist } from "../model/ITourist";
 import { TouristModel } from "../model/TouristModel";
 import { ITouristRepository } from "./ITouristRepository";
-import { UpdateTouristDto } from "../dto/UpdateTourist";
+import { UpdateTouristDto } from "../dto/UpdateTouristDto";
 
 export class TouristRepository implements ITouristRepository {
-  updateWithoutSessionDB(id: string, tourist: Partial<UpdateTouristDto>): Promise<ITourist | null> {
+  updateWithoutSessionDB(
+    id: string,
+    tourist: Partial<UpdateTouristDto>
+  ): Promise<ITourist | null> {
     return TouristModel.findByIdAndUpdate(id, tourist, { new: true }).exec();
   }
   getByIdDB(id: string): Promise<ITourist | null> {
@@ -23,18 +26,37 @@ export class TouristRepository implements ITouristRepository {
     // console.log('Session in updateDB:', session?.transaction);
     // if (session) options["session"] = session;
     // console.log("Updating tourist ID:", id);
-// console.log("With data:", tourist);
-    const updatedTourist = await TouristModel.findByIdAndUpdate(
-      id,
-      tourist,
-      // options
-      {new:true, session:session}
-    );
-    if (!updatedTourist) {
-      throw new Error(`Turista con ID ${id} no encontrado`);
+    // console.log("With data:", tourist);
+    let touristUpdated = null;
+    if (session) {
+      touristUpdated = await TouristModel.findByIdAndUpdate(
+        id,
+        tourist,
+        // options
+        { new: true, session: session }
+      );
+    } else {
+      touristUpdated = await TouristModel.findByIdAndUpdate(
+        id,
+        tourist,
+        // options
+        { new: true }
+      );
     }
+    // const updatedTourist = await TouristModel.findByIdAndUpdate(
+    //   id,
+    //   tourist,
+    //   // options
+    //   { new: true, session: session }
+    // );
+    // if (!updatedTourist) {
+    // throw new Error(`Turista con ID ${id} no encontrado`);
+    // }
+    // if (!session) {
+
+    // }
     // console.log('updatedTourist::: ', updatedTourist);
-    return updatedTourist;
+    return touristUpdated;
   }
 
   async getAllDB(): Promise<ITourist[]> {
@@ -67,12 +89,12 @@ export class TouristRepository implements ITouristRepository {
     dto: CreateTouristDto,
     session?: mongoose.ClientSession
   ): Promise<ITourist> {
-    const tourist = new TouristModel({ ...dto});
+    const tourist = new TouristModel({ ...dto });
     // console.log('tourist::: ', tourist);
     const savedTourist = session
-    ? await tourist.save({ session })
-    : await tourist.save();
-    
+      ? await tourist.save({ session })
+      : await tourist.save();
+
     // console.log('savedTourist::: ', savedTourist);
     return savedTourist;
     // return await tourist.save();

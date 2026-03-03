@@ -6,13 +6,36 @@ import { HttpException } from "../../../middleware/httpException";
 import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
 import { ITourist } from "../model/ITourist";
-import { UpdateTouristDto } from "../dto/UpdateTourist";
+import { UpdateTouristDto } from "../dto/UpdateTouristDto";
 
 export class TouristService implements ITouristService {
   private readonly touristRepository: ITouristRepository;
 
   constructor(touristRepository: ITouristRepository) {
     this.touristRepository = touristRepository;
+  }
+  async updateTourist(
+    id: string,
+    tourist: UpdateTouristDto
+  ): Promise<TouristVo> {
+    try {
+      const updatedTouristDoc = await this.touristRepository.updateDB(
+        // tourist.id!,
+        id,
+        tourist
+      );
+      if (!updatedTouristDoc) {
+        throw new Error("Tourist update returned null or undefined");
+      }
+      const updatedTouristVo = this.mapToVo(updatedTouristDoc);
+      return updatedTouristVo;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Error al actualizar el turista: ${error.message}`);
+      } else {
+        throw new Error("Error desconocido al actualizar el turista");
+      }
+    }
   }
   async getById(id: string): Promise<TouristVo | null> {
     const tourist = await this.touristRepository.getByIdDB(id);
@@ -25,7 +48,7 @@ export class TouristService implements ITouristService {
     id: string,
     tourist: Partial<UpdateTouristDto>,
     session: mongoose.ClientSession
-  ): Promise<TouristVo|null> {
+  ): Promise<TouristVo | null> {
     // console.log('UpdateTouristDto::: ', tourist);
     try {
       if (!session) {
@@ -87,11 +110,12 @@ export class TouristService implements ITouristService {
     session: any
   ): Promise<TouristVo> {
     try {
-      const updatedTouristDoc = await this.touristRepository.addBookingToTourist(
-        touristId,
-        bookingId,
-        session
-      );
+      const updatedTouristDoc =
+        await this.touristRepository.addBookingToTourist(
+          touristId,
+          bookingId,
+          session
+        );
       if (!updatedTouristDoc) {
         throw new Error("Tourist update returned null or undefined");
       }

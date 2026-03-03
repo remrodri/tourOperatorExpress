@@ -12,4 +12,8 @@ const touristController = new TouristController(touristService);
 touristRouter.get("/tourists", (req, res, next) =>
   touristController.getAllTourists(req, res, next)
 );
+
+touristRouter.put("/tourists/:id", (req, res, next) =>
+  touristController.updateTourist(req, res, next)
+);
 export default touristRouter;

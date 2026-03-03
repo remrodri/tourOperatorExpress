@@ -7,6 +7,8 @@ import { GetRandomQuestionDto } from "../../securitySetup/dto/getRandomQuestionD
 import { IUser } from "../model/IUser";
 
 export interface IUserService {
+  enableUser(enableUserDto: DeleteUserDto): Promise<UserVo | null>;
+  disableUser(disableUserDto: DeleteUserDto): Promise<UserVo | null>;
   getAllUsers(): Promise<any[]>;
   // createUser(createUserDto: CreateUserDto): Promise<UserVo>;
   createUser(userDataWithImage:any): Promise<UserVo>;
@@ -19,4 +21,5 @@ export interface IUserService {
   // registerUserQuestionsAnswers(userId:string,userQuestionsAnswersId: string): Promise<UserVo|null>;
   findUserByEmail(email: string): Promise<any | null>;
   getUserById(userId: string): Promise<any | null>;
+  
 }

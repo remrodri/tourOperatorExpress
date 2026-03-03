@@ -10,8 +10,7 @@ import { UserQuestionsAnswersRepository } from "../../recoveryPassword/repositor
 import { AnswerRepository } from "../../recoveryPassword/repository/AnswerRepository";
 import { AnswerService } from "../../recoveryPassword/service/AnswerService";
 import { UserController } from "../controller/UserController";
-import upload from "../../../multerConfig"
-
+import upload from "../../../multerConfig";
 
 const userRouter: Router = Router();
 const questionRepository = new QuestionRepository();
@@ -32,8 +31,7 @@ const userService = new UserService(
 );
 const userController = new UserController(userService);
 
-
-userRouter.get("/users", authMiddleware, (req, res, next) =>
+userRouter.get("/users", (req, res, next) =>
   userController.getAllUsers(req, res, next)
 );
 
@@ -50,5 +48,13 @@ userRouter.put("/users/:userId", upload.single("image"), (req, res, next) =>
 
 userRouter.patch("/users/delete-user", authMiddleware, (req, res, next) =>
   userController.softDeleteUser(req, res, next)
+);
+
+userRouter.patch("/users/enable-user", authMiddleware, (req, res, next) =>
+  userController.enableUser(req, res, next)
+);
+
+userRouter.patch("/users/disable-user", authMiddleware, (req, res, next) =>
+  userController.disableUser(req, res, next)
 );
 export default userRouter;
