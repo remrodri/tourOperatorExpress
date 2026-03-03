@@ -23,7 +23,7 @@ export interface IBookingRepository {
     session?: mongoose.ClientSession
   ): Promise<IBooking>;
   getAllDB(): Promise<IBooking[]>;
-  createDB(dto: any, session: mongoose.ClientSession): Promise<IBooking>;
+  createDB(dto: any, session: mongoose.ClientSession,bookingCode: string): Promise<IBooking>;
   // createWithTransaction(
   //   createBookingFn: (session?: mongoose.ClientSession) => Promise<BookingVo>
   // ): Promise<BookingVo>;

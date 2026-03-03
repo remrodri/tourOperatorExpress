@@ -103,9 +103,10 @@ export class BookingRepository implements IBookingRepository {
   // }
   async createDB(
     dto: any,
-    session?: ClientSession
+    session?: ClientSession,
+    bookingCode?: string
   ): Promise<IBooking> {
-    const bookingModel = new BookingModel(dto);
+    const bookingModel = new BookingModel({...dto,bookingCode});
     const savedBooking = session
       ? await bookingModel.save({ session })
       : await bookingModel.save();

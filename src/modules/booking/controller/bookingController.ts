@@ -19,7 +19,7 @@ export class BookingController {
   async cancelBooking(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const id = req.params.id;
@@ -27,8 +27,8 @@ export class BookingController {
       // console.log('req.body::: ', req.body);
       const dto = CancelBookingDto.parse(req.body);
       // console.log("dto::: ", dto);
-      const vo = await this.bookingService.cancelBooking(id,dto);
-      console.log('vo::: ', vo);
+      const vo = await this.bookingService.cancelBooking(id, dto);
+      console.log("vo::: ", vo);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
         .setData(vo)
@@ -43,7 +43,7 @@ export class BookingController {
   async updateBookingAttendanceLists(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const dto = UpdateBookingAttendanceListsDto.parse(req.body);
@@ -63,7 +63,7 @@ export class BookingController {
   async updateBooking(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     // console.log('req.body::: ', req.body);
     try {
@@ -73,7 +73,7 @@ export class BookingController {
       // console.log('id::: ', id);
       const vo: BookingUpdatedVo = await this.bookingService.updateAllData(
         dto,
-        id
+        id,
       );
       // console.log('vo::: ', vo);
       const response = new ApiResponseBuilder()
@@ -90,8 +90,9 @@ export class BookingController {
   async createBooking(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
+    console.log("req.body::: ", req.body);
     try {
       const { paymentProofFolder } = req.body;
       const file = req.file;
@@ -103,7 +104,7 @@ export class BookingController {
         const finalDir = path.join(
           __dirname,
           "../../../../uploads/paymentProofs",
-          paymentProofFolder
+          paymentProofFolder,
         );
 
         if (!fs.existsSync(finalDir)) {
@@ -180,7 +181,7 @@ export class BookingController {
   async getAllBookings(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const vos = await this.bookingService.getAll();

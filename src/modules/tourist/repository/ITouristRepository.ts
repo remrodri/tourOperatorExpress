@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { CreateTouristDto } from "../dto/CreateTouristDto";
 import { ITourist } from "../model/ITourist";
-import { UpdateTouristDto } from "../dto/UpdateTourist";
+import { UpdateTouristDto } from "../dto/UpdateTouristDto";
 
 export interface ITouristRepository {
   updateWithoutSessionDB(

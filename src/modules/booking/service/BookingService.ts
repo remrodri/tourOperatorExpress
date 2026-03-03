@@ -20,6 +20,7 @@ import { IPayment } from "src/modules/payment/model/IPayment";
 import { UpdateBookingAttendanceListsDto } from "../dto/UpdateBookingAttendanceListsDto";
 import { BookingUpdatedAttendanceVo } from "../vo/BookingUpdatedAttendanceVo";
 import { CancelBookingDto } from "../dto/CancelBookingDto";
+import { nanoid } from "nanoid";
 
 export class BookingService implements IBookingService {
   private readonly touristService: ITouristService;
@@ -308,6 +309,7 @@ export class BookingService implements IBookingService {
       bookingDoc.cancellationFee,
       bookingDoc.refundAmount,
       bookingDoc.refundedAt,
+      bookingDoc.bookingCode
     );
   }
   private mapToVo(bookingDoc: IBooking): BookingVo {
@@ -333,6 +335,7 @@ export class BookingService implements IBookingService {
       bookingDoc.cancellationFee,
       bookingDoc.refundAmount,
       bookingDoc.refundedAt,
+      bookingDoc.bookingCode
     );
   }
 
@@ -345,35 +348,44 @@ export class BookingService implements IBookingService {
           }
 
           const touristVos = await Promise.all(
-            bookingDto.tourists.map(async (tourist) => {
-              return await this.touristService.create(tourist, session);
-            })
+            bookingDto.tourists
+              .map(async (tourist) => {
+                if (tourist.id) {
+                  return await this.touristService.getById(tourist.id);
+                }
+                return await this.touristService.create(tourist, session);
+              })
+              .filter((tourist) => tourist !== null)
           );
 
           const bookingData = {
             paymentProofImage: bookingDto.paymentProofImage,
             dateRangeId: bookingDto.dateRangeId,
-            touristsIds: touristVos.map((tourist) => tourist.id),
+            touristsIds: touristVos.map((tourist) => tourist?.id),
             notes: bookingDto.notes,
             sellerId: bookingDto.sellerId,
             status: bookingDto.status,
             totalPrice: bookingDto.totalPrice,
             tourPackageId: bookingDto.tourPackageId,
             paymentProofFolder: bookingDto.paymentProofFolder,
-            attendance: touristVos.map((touristVo) => {
-              return {
-                touristId: touristVo.id,
-                status: "absent",
-              };
-            }),
+            attendance: touristVos
+              .map((touristVo) => {
+                return {
+                  touristId: touristVo?.id,
+                  status: "absent",
+                };
+              })
+              .filter((attendance) => attendance !== null),
           };
+          const bookingCode = `RSV-${nanoid(12)}`;
           const booking = await this.bookingRepository.createDB(
             bookingData,
-            session
+            session,
+            bookingCode
           );
           const paymentDto = CreatePaymentDto.parse({
             ...bookingDto.firstPayment,
-            touristId: touristVos[touristVos.length - 1].id,
+            touristId: touristVos.at(-1)?.id,
             bookingId: booking.id,
             paymentProofImage: bookingDto.paymentProofImage,
           });
@@ -391,7 +403,7 @@ export class BookingService implements IBookingService {
           const touristsUpdated = await Promise.all(
             touristVos.map(async (tourist) => {
               return await this.touristService.addBookingToTourist(
-                tourist.id,
+                tourist!.id,
                 booking.id,
                 session
               );
@@ -440,6 +452,7 @@ export class BookingService implements IBookingService {
       bookingDoc.cancellationFee,
       bookingDoc.refundAmount,
       bookingDoc.refundedAt,
+      bookingDoc.bookingCode
     );
   }
 }

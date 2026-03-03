@@ -73,6 +73,10 @@ const BookingSchema: Schema = new Schema(
       type: Schema.Types.Date,
       default: null,
     },
+    bookingCode: {
+      type: Schema.Types.String,
+      // required: [true, "Reservation code is required"],
+    },
   },
   {
     timestamps: true,

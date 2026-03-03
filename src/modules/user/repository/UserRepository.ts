@@ -6,8 +6,24 @@ import { DeleteUserDto } from "../dto/deleteUserDto";
 import { UpdateUserDto } from "../dto/updateUserDto";
 import { IUserRepository } from "./IUserRepository";
 import bcrypt from "bcryptjs";
+import { RoleModel } from "../../role/model/roleModel";
 
 export class UserRepository implements IUserRepository {
+  async enableUser(userId: string): Promise<IUser | null> {
+    return await UserModel.findByIdAndUpdate(userId, { deleted: false }, { new: true });
+  }
+  async disableUser(userId: string): Promise<IUser | null> {
+    return await UserModel.findByIdAndUpdate(userId, { deleted: true }, { new: true });
+  }
+  async findByCi(ci: string): Promise<any | null> {
+    return await UserModel.findOne({ ci: ci });
+  }
+  async roleExists(roleId: string): Promise<boolean> {
+    return !!(await RoleModel.exists({ _id: roleId }));
+  }
+  async update(userId: string, userData: Partial<IUser>): Promise<IUser | null> {
+    return UserModel.findByIdAndUpdate(userId, { $set: userData }, { new: true });
+  }
   // async getByEmail(email: string): Promise<IUser | null> {
   //   return await UserModel.findOne({ email: email });
   //   // throw new Error("Method not implemented.");
@@ -107,7 +123,7 @@ export class UserRepository implements IUserRepository {
     return userFound;
   }
   async getAll(): Promise<IUser[]> {
-    return await UserModel.find({ deleted: false });
+    return await UserModel.find();
     // throw new Error("Method not implemented.");
   }
 }

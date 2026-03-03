@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const UpdateTouristDto = z.object({
+export const UpdateTouristSchema = z.object({
   id: z.string().optional(),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
@@ -15,4 +15,4 @@ const UpdateTouristDto = z.object({
   // status: z.string().default("active"),
 });
 
-export type UpdateTouristDto = z.infer<typeof UpdateTouristDto>;
+export type UpdateTouristDto = z.infer<typeof UpdateTouristSchema>;
