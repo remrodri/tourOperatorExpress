@@ -4,8 +4,9 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "ts-node-dev src/index.ts",
+    "postinstall": "npm run build",
+    "start": "node -r tsconfig-paths/register dist/server.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "test": "jest"
   },
   "keywords": [],
@@ -29,8 +30,7 @@
     "mongodb-memory-server": "^10.3.0",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.5",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.6.3"
+    "ts-node-dev": "^2.0.0"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -44,6 +44,8 @@
     "multer": "^1.4.5-lts.1",
     "nanoid": "^5.1.6",
     "swagger-ui-express": "^5.0.1",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.6.3",
     "uuid": "^11.1.0",
     "zod": "^3.23.8"
   }
