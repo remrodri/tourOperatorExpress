@@ -36,7 +36,7 @@ export class UserService implements IUserService {
       role: user.role?.toString?.() ?? String(user.role),
       address: user.address ?? "",
       imageUrl: user.imagePath
-        ? `${process.env.BASE_URL}${user.imagePath}`
+        ? `${user.imagePath}`
         : "",
       deleted: user.deleted ?? false,
     });
@@ -341,7 +341,7 @@ export class UserService implements IUserService {
       role: user.role?.toString?.() ?? user.role,
       address: user.address ?? "",
       imageUrl: user.imagePath
-        ? `${process.env.BASE_URL}${user.imagePath}`
+        ? `${user.imagePath}`
         : "",
       deleted: user.deleted ?? false,
     }));

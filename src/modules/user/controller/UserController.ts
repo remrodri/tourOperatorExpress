@@ -79,6 +79,7 @@ export class UserController {
   async getAllUsers(req: Request, res: Response, next: NextFunction) {
     try {
       const users = await this.userService.getAllUsers();
+      console.log('users::: ', users);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
         .setMessage("Usuarios encontrados satisfactoriamente")
