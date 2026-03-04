@@ -7,31 +7,20 @@ import path from "path";
 import apiRouter from "./modules/apiRouter";
 import { errorMiddleware } from "./middleware/errorMiddleware";
 
-dotenv.config();
+dotenv.config(); // OK para local (en Railway no molesta)
 
 const app: Application = express();
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on ${PORT}`);
-});
 
 /* =========================
    Middlewares base
 ========================= */
-
-app.use(
-  cors({
-    origin: "*",
-  }),
-);
-
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
 /* =========================
-   Headers para Dev Tunnels (HTTP/2 fix)
+   Headers
 ========================= */
 app.use((req, res, next) => {
   res.setHeader("Connection", "keep-alive");
@@ -40,8 +29,7 @@ app.use((req, res, next) => {
 });
 
 /* =========================
-   Static files (uploads)
-   ✅ usar process.cwd()
+   Static files
 ========================= */
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
