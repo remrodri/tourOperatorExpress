@@ -21,27 +21,30 @@ export class AuthService implements IAuthService {
     if (!validData) {
       throw new HttpException(
         StatusCodes.UNAUTHORIZED,
-        "Credenciales Invalidas"
+        "Credenciales Invalidas",
       );
     }
     const user = await this.authRepository.findByEmail(loginData.email);
     if (!user) {
       throw new HttpException(
         StatusCodes.UNAUTHORIZED,
-        "Credenciales Invalidas"
+        "Credenciales Invalidas",
       );
     }
     if (user.deleted) {
-      throw new HttpException(StatusCodes.UNAUTHORIZED, "Cuenta Eliminada");
+      throw new HttpException(
+        StatusCodes.UNAUTHORIZED,
+        "Usuario Deshabilitado",
+      );
     }
     const isValidPassword = await bcrypt.compare(
       loginData.password,
-      user.password
+      user.password,
     );
     if (!isValidPassword) {
       throw new HttpException(
         StatusCodes.UNAUTHORIZED,
-        "Credenciales Invalidas"
+        "Credenciales Invalidas",
       );
     }
     // console.log("user::: ", user);
