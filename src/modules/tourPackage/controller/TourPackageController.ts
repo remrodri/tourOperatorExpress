@@ -26,7 +26,7 @@ export class TourPackageController {
       const vo = await this.tourPackageService.updateStatus(id, dto);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
-        .setMessage("Updated successfully")
+        .setMessage("Actualizado exitosamente")
         .setData(vo)
         .build();
       res.status(StatusCodes.OK).json(response);
@@ -42,7 +42,7 @@ export class TourPackageController {
       const vo = await this.tourPackageService.delete(dto);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
-        .setMessage("Deleted succesfully")
+        .setMessage("Eliminado exitosamente")
         .setData(vo)
         .build();
       res.status(StatusCodes.OK).json(response);
@@ -66,7 +66,7 @@ export class TourPackageController {
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
         .setData(vo)
-        .setMessage("Updated successfully")
+        .setMessage("Actualizado exitosamente")
         .build();
       res.status(StatusCodes.OK).json(response);
     } catch (error) {
@@ -78,7 +78,7 @@ export class TourPackageController {
       const vos = await this.tourPackageService.getAllTourPackages();
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
-        .setMessage("Tour packages found succesfully")
+        .setMessage("Paquetes turísticos encontrados exitosamente")
         .setData(vos)
         .build();
       res.status(StatusCodes.OK).json(response);
@@ -98,7 +98,7 @@ export class TourPackageController {
       // vos.forEach((vo) => console.log("vo.dateRanges::: ", vo.dateRanges));
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
-        .setMessage("Tour packages found succesfully")
+        .setMessage("Paquetes turísticos encontrados exitosamente")
         .setData(vos)
         .build();
       res.status(StatusCodes.OK).json(response);
@@ -122,7 +122,7 @@ export class TourPackageController {
 
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
-        .setMessage("Created successfully")
+        .setMessage("Paquete turístico creado exitosamente")
         .setData(vo)
         .build();
       res.status(StatusCodes.OK).json(response);
