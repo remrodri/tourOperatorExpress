@@ -141,7 +141,7 @@ export class SecuritySetupController {
       await this.securitySetupService.updateUserPassword(updatePasswordDto);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
-        .setMessage("Password actualizado exitosamente")
+        .setMessage("Contraseña actualizada exitosamente")
         .setData(null)
         .build();
       res.status(StatusCodes.OK).json(response);
