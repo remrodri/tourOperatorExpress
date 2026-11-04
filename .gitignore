@@ -1,3 +1,14 @@
-node_modules
+node_modules/
+dist/
+coverage/
+
 .env
-.qodo
+.env.*
+!.env.example
+
+uploads/
+*.log
+
+.qodo/
+.DS_Store
+
