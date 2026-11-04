@@ -2,18 +2,22 @@
 
 ## Estado
 
-Borrador. No implementar hasta resolver las dudas que afecten al frontend y
-marcar la spec como `Ready`.
+Listo para implementación. Las decisiones de sesión, CORS y acceso a
+comprobantes están resueltas. La URL definitiva de producción se suministrará
+por configuración y no bloquea el backend.
 
 ## Módulos afectados
 
 - Configuración central: carga y validación de variables de entorno (RF-1..3).
-- JWT: emisión y verificación sin fallback (RF-2, RF-3).
-- Auth/security setup: eliminación de logs sensibles (RF-4, RF-5).
-- Manejo de errores y logging: redacción y correlación (RF-5).
+- Sesiones: access token de 30 minutos y refresh rotatorio persistido de forma
+  revocable, con límite absoluto de 7 días (RF-3..6).
+- CORS y CSRF: allowlist por entorno y protección de cookies cross-site
+  (RF-7, RF-8).
+- Auth/security setup: eliminación de logs sensibles (RF-9, RF-10).
+- Manejo de errores y logging: redacción y correlación (RF-10).
 - Archivos y estáticos: separación local de contenido público/privado y manejo
-  de archivos efímeros (RF-6..8).
-- Jest/TypeScript: baseline reproducible y pruebas de regresión (RF-9..11).
+  de archivos efímeros (RF-11..13).
+- Jest/TypeScript: baseline reproducible y pruebas de regresión (RF-14..16).
 
 ## Decisiones técnicas propuestas
 
@@ -29,6 +33,14 @@ marcar la spec como `Ready`.
 5. Mantener almacenamiento local temporal en Railway. Se descartan S3,
    Cloudinary y equivalentes por costo y alcance. El sistema tratará la ausencia
    del archivo como un estado recuperable y no como corrupción de datos.
+6. Persistir únicamente hashes de refresh tokens y metadatos de la familia de
+   sesión. Se descarta guardar refresh tokens utilizables en texto plano.
+7. Resolver el comprobante desde el pago y su reserva, y autorizar al
+   administrador o al vendedor asignado. Se descarta confiar en una ruta de
+   archivo enviada por el cliente.
+8. Configurar CORS mediante allowlist. Para cookies cross-site se utilizará
+   `SameSite=None; Secure` más protección CSRF; para despliegues same-site se
+   preferirá `SameSite=Lax`.
 
 ## Estrategia de tests
 
@@ -39,14 +51,20 @@ marcar la spec como `Ready`.
 - Integración de upload: válido, MIME/extensión engañosa, tamaño y cantidad.
 - Regresión del envelope HTTP vigente.
 - Solicitud directa a comprobante que no debe devolver el archivo.
+- Comprobante solicitado por administrador, vendedor asignado, otro vendedor y
+  usuario sin sesión.
 - Referencia existente cuyo archivo local desapareció: respuesta 404 uniforme.
 
 ## Compatibilidad
 
-- RF-1, RF-2, RF-4, RF-5, RF-7, RF-8, RF-9 y RF-11 son compatibles.
-- RF-3 puede invalidar sesiones si se reduce inmediatamente la expiración; debe
-  aplicarse con una transición definida.
-- RF-6 es coordinado si el frontend usa URLs públicas de comprobantes.
+- RF-1, RF-2, RF-7, RF-8, RF-9, RF-10, RF-12, RF-13, RF-14 y RF-16 son
+  compatibles.
+- RF-3 cambia la sesión esperada por el frontend: los nuevos access tokens
+  expirarán a los 30 minutos. No se mantendrá la duración insegura anterior; la
+  estrategia de renovación se definirá antes de implementar T4.
+- RF-4 a RF-6 requieren que el frontend use cookies con credenciales y renueve
+  la sesión.
+- RF-11 es coordinado si el frontend usa URLs públicas de comprobantes.
 
 ## Despliegue y rollback
 

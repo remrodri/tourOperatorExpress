@@ -58,7 +58,8 @@ uploads/
 
 La estructura puede introducirse de forma compatible o mediante una migración
 de rutas. Las imágenes de perfil y destinos pueden ser públicas; los
-comprobantes no deben servirse por `express.static` y deben requerir permisos.
+comprobantes no deben servirse por `express.static`. Solo el administrador y el
+vendedor asignado a la reserva asociada pueden consultarlos.
 
 Este archivo se actualizará con ejemplos reales y pruebas de contrato antes de
 implementar cambios coordinados.

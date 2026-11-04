@@ -1,6 +1,6 @@
 # Spec 001 — Contención de seguridad y baseline verificable
 
-**Estado:** Draft
+**Estado:** Ready
 
 ## Contexto y objetivo
 
@@ -33,35 +33,54 @@ preparando el cierre coordinado de rutas sensibles.
   secretos.
 - RF-2: EL SISTEMA no utilizará claves secretas predeterminadas en ningún entorno.
 - RF-3: CUANDO se emita un token de acceso, EL SISTEMA incluirá únicamente claims
-  necesarios y una expiración configurable; el valor inicial de migración se
-  documentará sin ampliar las 720 h actuales.
+  necesarios y expirará a los 30 minutos. No se conservará la duración anterior
+  de 720 horas por compatibilidad.
+- RF-4: CUANDO un access token expire y exista una sesión renovable válida, EL
+  SISTEMA emitirá un nuevo par mediante un refresh token rotatorio almacenado en
+  una cookie `HttpOnly`, `Secure` en producción y con política `SameSite`
+  explícita. Cada uso invalidará el refresh token anterior.
+- RF-5: SI un refresh token revocado, expirado, reutilizado o desconocido se
+  presenta, ENTONCES EL SISTEMA rechazará la renovación y revocará la familia de
+  sesión asociada cuando exista evidencia de reutilización.
+- RF-6: MIENTRAS una familia de sesión permanezca activa, EL SISTEMA permitirá
+  rotaciones solo hasta cumplir 7 días desde el login original; la rotación no
+  extenderá ese límite absoluto y después exigirá nuevamente las credenciales.
+- RF-7: CUANDO el servidor inicie en producción, EL SISTEMA exigirá al menos un
+  origen explícito en `CORS_ORIGINS`; en desarrollo permitirá
+  `http://localhost:5173` y nunca utilizará `*` junto con credenciales.
+- RF-8: SI frontend y backend operan en sitios diferentes y la cookie requiere
+  `SameSite=None`, ENTONCES EL SISTEMA exigirá `Secure`, validará el origen y
+  aplicará protección CSRF al endpoint de renovación y cierre de sesión.
 
 ### Redacción de información
-- RF-4: CUANDO se procese login, recuperación o configuración de seguridad, EL
+- RF-9: CUANDO se procese login, renovación, cierre de sesión, recuperación o
+  configuración de seguridad, EL
   SISTEMA no registrará contraseñas, hashes, tokens, respuestas de seguridad ni
   documentos completos de usuario.
-- RF-5: SI ocurre un error inesperado, ENTONCES EL SISTEMA registrará un
+- RF-10: SI ocurre un error inesperado, ENTONCES EL SISTEMA registrará un
   identificador de correlación y datos técnicos redactados, y responderá con el
   formato vigente sin revelar detalles internos.
 
 ### Archivos y exposición
-- RF-6: CUANDO se solicite una ruta bajo comprobantes de pago, EL SISTEMA no
+- RF-11: CUANDO se solicite una ruta bajo comprobantes de pago, EL SISTEMA no
   entregará el archivo mediante el middleware estático público y exigirá un
-  usuario con permiso para consultarlo.
-- RF-7: CUANDO se cargue una imagen, EL SISTEMA aplicará límites de tamaño y
+  usuario con permiso para consultarlo. Solo un administrador o el vendedor
+  asignado a la reserva asociada podrá obtenerlo; cualquier otro usuario recibirá
+  `403` sin revelar la existencia o ruta física del archivo.
+- RF-12: CUANDO se cargue una imagen, EL SISTEMA aplicará límites de tamaño y
   cantidad y rechazará extensiones o tipos no permitidos antes de hacerla
   accesible.
-- RF-8: SI un archivo local referenciado ya no existe después de un reinicio o
+- RF-13: SI un archivo local referenciado ya no existe después de un reinicio o
   redespliegue, ENTONCES EL SISTEMA responderá `404` de forma controlada sin
   modificar ni eliminar el registro de MongoDB.
 
 ### Baseline y compatibilidad
-- RF-9: EL SISTEMA conservará durante esta spec la forma de respuesta
+- RF-14: EL SISTEMA conservará durante esta spec la forma de respuesta
   `statusCode/message/data` para solicitudes válidas existentes.
-- RF-10: CUANDO se ejecute la suite, EL SISTEMA descubrirá los tests válidos y
+- RF-15: CUANDO se ejecute la suite, EL SISTEMA descubrirá los tests válidos y
   cubrirá como mínimo login válido, credenciales inválidas, configuración JWT
   ausente, redacción de logs y rechazo de archivo inválido.
-- RF-11: CUANDO se ejecute el build, EL SISTEMA compilará en modo TypeScript
+- RF-16: CUANDO se ejecute el build, EL SISTEMA compilará en modo TypeScript
   estricto sin depender de archivos generados previamente.
 
 ## Requisitos no funcionales
@@ -95,7 +114,7 @@ pueden mitigarse operacionalmente mientras tanto.
 
 ## Criterios de finalización
 
-- RF-1 a RF-11 tienen pruebas automáticas identificables y verdes.
+- RF-1 a RF-16 tienen pruebas automáticas identificables y verdes.
 - `npm run build` y `npm test -- --runInBand` finalizan correctamente.
 - Una revisión confirma que no se imprimen datos sensibles en rutas de auth y
   security setup.
@@ -105,10 +124,13 @@ pueden mitigarse operacionalmente mientras tanto.
 
 ## Dudas abiertas
 
-- [NECESITA ACLARACIÓN] ¿Qué duración de access token y estrategia de renovación
-  usará la siguiente spec de autenticación?
-- [NECESITA ACLARACIÓN] ¿Qué roles concretos pueden consultar comprobantes y el
-  frontend los muestra actualmente mediante URLs de `/uploads`?
-- [NECESITA ACLARACIÓN] ¿Cuáles son los orígenes de frontend de desarrollo,
-  pruebas y producción?
+- [RESUELTA] El access token durará 30 minutos y se renovará mediante refresh
+  token rotatorio en cookie `HttpOnly`.
+- [RESUELTA] La familia de sesión tendrá una duración máxima absoluta de 7 días
+  desde el login original.
+- [RESUELTA] Solo el administrador y el vendedor asignado a la reserva pueden
+  consultar su comprobante. El uso actual de URLs `/uploads` se verificará al
+  inventariar el frontend antes de implementar T7.
+- [RESUELTA] Desarrollo usará `http://localhost:5173`. Producción se configurará
+  mediante `CORS_ORIGINS`; no se requiere conocer ahora el dominio definitivo.
 
