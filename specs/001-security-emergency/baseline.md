@@ -25,3 +25,15 @@ Fecha: 2026-11-04
 - Corregir únicamente fixtures/configuración necesarios para obtener un baseline
   ejecutable.
 
+## Resultado de T1
+
+- `npm run build`: correcto.
+- `npm test -- --runInBand --verbose`: correcto.
+- Suites descubiertas: 3.
+- Pruebas: 6 aprobadas, 0 fallidas.
+- Se renombraron los dos archivos `.test.ts1` a `.test.ts`.
+- `nanoid` se sustituye por un valor determinista solo en Jest para aislar la
+  incompatibilidad ESM/CommonJS sin cambiar producción.
+- Riesgo observado y diferido a T5: login imprime credenciales, hashes y tokens.
+
+

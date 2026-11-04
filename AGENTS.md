@@ -11,8 +11,9 @@ Antes de modificar código:
 
 1. Leer `docs/constitution.md`.
 2. Leer `docs/current-api-contract.md`.
-3. Leer la spec activa, su `plan.md` y su `tasks.md`.
-4. Implementar solamente la tarea solicitada.
+3. Leer `MEMORY.md` para conocer el último estado verificado.
+4. Leer la spec activa, su `plan.md` y su `tasks.md`.
+5. Implementar solamente la tarea solicitada.
 
 Si el comportamiento requerido no está definido, actualizar primero la spec y
 resolver la ambigüedad antes de escribir código.
@@ -53,5 +54,6 @@ resolver la ambigüedad antes de escribir código.
 - Ejecutar `npm run build`.
 - Asociar cada prueba nueva con sus RF.
 - Marcar la tarea como hecha solo si su condición `Hecho cuando` se cumple.
+- Actualizar `MEMORY.md` de forma breve, sin secretos ni datos personales.
 - Informar cambios de contrato, riesgos pendientes y verificaciones realizadas.
 

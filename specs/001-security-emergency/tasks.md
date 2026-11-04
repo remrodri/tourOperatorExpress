@@ -2,7 +2,7 @@
 
 No ejecutar hasta que la spec esté `Ready`.
 
-- [ ] T1. Corregir el descubrimiento de pruebas, confirmar `npm ci`, build y
+- [x] T1. Corregir el descubrimiento de pruebas, confirmar `npm ci`, build y
   suite baseline sin modificar comportamiento. (RF-15, RF-16)
   **Hecho cuando:** Jest descubre todos los tests previstos y se documentan los
   fallos preexistentes.

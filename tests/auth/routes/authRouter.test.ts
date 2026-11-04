@@ -1,41 +1,38 @@
 import request from "supertest";
 import bcrypt from "bcryptjs";
-import app from "../../../src/app";
 import mongoose from "mongoose";
+import app from "../../../src/app";
 import { UserModel } from "../../../src/modules/user/model/userModel";
-
-jest.unmock("@repository/authRepository.ts");
 
 describe("POST /api/v1/auth/login", () => {
   beforeEach(async () => {
-    const hashedPassword = await bcrypt.hash("password123", 10);
-    const user = await UserModel.create({
-      email: "test@example.com",
-      password: hashedPassword,
+    await UserModel.create({
+      email: "route@example.com",
+      password: await bcrypt.hash("password123", 10),
       deleted: false,
       role: new mongoose.Types.ObjectId(),
-      ci: "123456789",
+      ci: "route-ci",
       phone: "5551234567",
-      lastName: "Test",
+      lastName: "Route",
       firstName: "User",
+      address: "Test address",
     });
-    console.log("user::: ", user);
   });
 
-  it("should return 200 and a token for valid credentials", async () => {
+  it("returns 200 and a token for valid credentials", async () => {
     const response = await request(app)
       .post("/api/v1/auth/login")
-      .send({ email: "test@example.com", password: "password123" });
+      .send({ email: "route@example.com", password: "password123" });
 
-    console.log("response.body::: ", response.body);
     expect(response.status).toBe(200);
     expect(response.body.data.token).toBeDefined();
   });
 
-  it("should return 401 for invalid credentials", async () => {
+  it("returns 401 for invalid credentials", async () => {
     const response = await request(app)
       .post("/api/v1/auth/login")
-      .send({ email: "test@example.com", password: "wrongpassword" });
+      .send({ email: "route@example.com", password: "wrongpassword" });
+
     expect(response.status).toBe(401);
   });
 });
