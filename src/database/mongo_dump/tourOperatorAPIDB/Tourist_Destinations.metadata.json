@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"imageFolder":{"$numberInt":"1"}},"name":"imageFolder_1","background":true,"unique":true}],"uuid":"6a1820012b3f44efa4910510a8a0d5fd","collectionName":"Tourist_Destinations","type":"collection"}

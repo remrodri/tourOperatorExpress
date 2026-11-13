@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"0ddc33bf23b847f085cfc2f74bd2c28e","collectionName":"Tour_Packages","type":"collection"}

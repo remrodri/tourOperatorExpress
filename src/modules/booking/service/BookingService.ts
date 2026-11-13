@@ -20,7 +20,10 @@ import { IPayment } from "src/modules/payment/model/IPayment";
 import { UpdateBookingAttendanceListsDto } from "../dto/UpdateBookingAttendanceListsDto";
 import { BookingUpdatedAttendanceVo } from "../vo/BookingUpdatedAttendanceVo";
 import { CancelBookingDto } from "../dto/CancelBookingDto";
-import { nanoid } from "nanoid";
+import { randomBytes } from "crypto";
+
+export const generateBookingCode = (): string =>
+  `RSV-${randomBytes(9).toString("base64url")}`;
 
 export class BookingService implements IBookingService {
   private readonly touristService: ITouristService;
@@ -377,7 +380,7 @@ export class BookingService implements IBookingService {
               })
               .filter((attendance) => attendance !== null),
           };
-          const bookingCode = `RSV-${nanoid(12)}`;
+          const bookingCode = generateBookingCode();
           const booking = await this.bookingRepository.createDB(
             bookingData,
             session,
