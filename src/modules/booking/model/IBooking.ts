@@ -18,4 +18,11 @@ export interface IBooking extends Document<Types.ObjectId> {
   refundAmount: number,
   refundedAt: string,
   bookingCode: string,
+  dataOrigin?: "legacy" | "simulated" | "manual";
+  simulationId?: string;
+  simulationVersion?: string;
+  simulationSeed?: number;
+  simulationKey?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

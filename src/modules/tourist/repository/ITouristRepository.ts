@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { CreateTouristDto } from "../dto/CreateTouristDto";
 import { ITourist } from "../model/ITourist";
 import { UpdateTouristDto } from "../dto/UpdateTouristDto";
+import { CursorValue } from "../../../utils/pagination/cursorPagination";
 
 export interface ITouristRepository {
   updateWithoutSessionDB(
@@ -15,6 +16,13 @@ export interface ITouristRepository {
     session?: mongoose.ClientSession
   ): Promise<ITourist | null>;
   getAllDB(): Promise<ITourist[]>;
+  getFeedDB(
+    filter: Record<string, unknown>,
+    cursor: CursorValue | null,
+    limit: number
+  ): Promise<ITourist[]>;
+  getByIdsDB(ids: string[]): Promise<ITourist[]>;
+  countDB(): Promise<number>;
   addBookingToTourist(
     touristId: string,
     bookingId: string,

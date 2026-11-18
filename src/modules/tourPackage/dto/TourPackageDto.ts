@@ -20,6 +20,10 @@ const DateRangeSchema = z.object({
   dates: z
     .array(z.string())
     .min(1, "Se requiere al menos dos fechas para un rango"),
+  capacity: z
+    .number()
+    .int("La capacidad debe ser un número entero")
+    .positive("La capacidad debe ser mayor a 0"),
   guides: z.array(z.string()),
 });
 

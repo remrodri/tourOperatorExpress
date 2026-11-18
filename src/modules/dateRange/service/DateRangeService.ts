@@ -8,6 +8,17 @@ import { IDateRangeService } from "./IDateRangeService";
 import { StatusCodes } from "http-status-codes";
 import { UpdateDateRangeDto } from "../dto/UpdateDateRangeDto";
 import { ITourPackageService } from "src/modules/tourPackage/service/ITourPackageService";
+import {
+  DateRangeBounds,
+  DateRangeNormalizationError,
+  resolveDateRangeBounds,
+} from "../domain/dateRangeNormalization";
+
+type DateRangeBoundsSource = {
+  dates?: string[];
+  startDate?: Date;
+  endDate?: Date;
+};
 
 export class DateRangeService implements IDateRangeService {
   private readonly dateRangeRepository: IDateRangeRepository;
@@ -20,6 +31,48 @@ export class DateRangeService implements IDateRangeService {
     this.dateRangeRepository = dateRangeRepository;
     this.tourPackageService = tourPackageService;
   }
+
+  private normalizeCreate(dto: DateRangeDto): DateRangeDto {
+    try {
+      const bounds = resolveDateRangeBounds({
+        dates: dto.dates,
+        startDate: dto.startDate,
+        endDate: dto.endDate,
+      });
+
+      return { ...dto, ...bounds, dataOrigin: dto.dataOrigin ?? "manual" };
+    } catch (error) {
+      if (error instanceof DateRangeNormalizationError) {
+        throw new HttpException(StatusCodes.BAD_REQUEST, error.message);
+      }
+      throw error;
+    }
+  }
+
+  private normalizeUpdate<T extends DateRangeBoundsSource>(
+    dto: T
+  ): T & Partial<DateRangeBounds> {
+    if (!dto.dates && !dto.startDate && !dto.endDate) {
+      return dto;
+    }
+
+    try {
+      return {
+        ...dto,
+        ...resolveDateRangeBounds({
+          dates: dto.dates,
+          startDate: dto.startDate,
+          endDate: dto.endDate,
+        }),
+      };
+    } catch (error) {
+      if (error instanceof DateRangeNormalizationError) {
+        throw new HttpException(StatusCodes.BAD_REQUEST, error.message);
+      }
+      throw error;
+    }
+  }
+
   async updateDateRange(
     id: string,
     dto: UpdateDateRangeDto
@@ -28,7 +81,10 @@ export class DateRangeService implements IDateRangeService {
     if (!drFound) {
       throw new HttpException(StatusCodes.NOT_FOUND, "DateRange not found");
     }
-    const drUpdated = await this.dateRangeRepository.updateDateRangeDB(id, dto);
+    const drUpdated = await this.dateRangeRepository.updateDateRangeDB(
+      id,
+      this.normalizeUpdate(dto)
+    );
     if (!drUpdated) {
       throw new HttpException(
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -36,13 +92,7 @@ export class DateRangeService implements IDateRangeService {
       );
     }
 
-    return new DateRangeVo(
-      drUpdated._id.toString(),
-      drUpdated.dates,
-      drUpdated.state,
-      drUpdated.guides,
-      drUpdated.tourPackageId
-    );
+    return DateRangeVo.fromDocument(drUpdated);
   }
   async addTourPackageIdToDateRange(
     id: string,
@@ -65,36 +115,25 @@ export class DateRangeService implements IDateRangeService {
         "Error updating DateRange"
       );
     }
-    return new DateRangeVo(
-      drUpdated._id.toString(),
-      drUpdated.dates,
-      drUpdated.state,
-      drUpdated.guides,
-      drUpdated.tourPackageId
-    );
+    return DateRangeVo.fromDocument(drUpdated);
   }
   async createWithSession(
     dto: DateRangeDto,
     session: ClientSession
   ): Promise<DateRangeVo> {
     try {
-      // console.log('dto::: ', dto);
-      const response = await this.dateRangeRepository.createDB(dto, session);
-      console.log("response::: ", response);
+      const normalizedDto = this.normalizeCreate(dto);
+      const response = await this.dateRangeRepository.createDB(
+        normalizedDto,
+        session
+      );
       if (!response) {
         throw new HttpException(
           StatusCodes.INTERNAL_SERVER_ERROR,
           "Internal server error"
         );
       }
-      const vo = new DateRangeVo(
-        response._id.toString(),
-        response.dates,
-        response.state,
-        response.guides,
-        response.tourPackageId
-      );
-      return vo;
+      return DateRangeVo.fromDocument(response);
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
@@ -107,20 +146,12 @@ export class DateRangeService implements IDateRangeService {
   }
   async getAll(): Promise<DateRangeVo[]> {
     const dateRanges = await this.dateRangeRepository.getAllDB();
-    const vos = dateRanges.map(
-      (dr: IDateRange) =>
-        new DateRangeVo(
-          dr._id.toString(),
-          dr.dates,
-          dr.state,
-          dr.guides,
-          dr.tourPackageId
-        )
-    );
-    return vos;
+    return dateRanges.map((dr: IDateRange) => DateRangeVo.fromDocument(dr));
   }
   async create(dto: DateRangeDto): Promise<DateRangeVo> {
-    const dateRangeDoc = await this.dateRangeRepository.createDB(dto);
+    const dateRangeDoc = await this.dateRangeRepository.createDB(
+      this.normalizeCreate(dto)
+    );
     if (!dateRangeDoc) {
       throw new HttpException(
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -139,14 +170,7 @@ export class DateRangeService implements IDateRangeService {
       dateRangeDoc._id.toString()
     );
 
-    const vo = new DateRangeVo(
-      dateRangeDoc._id.toString(),
-      dateRangeDoc.dates,
-      dateRangeDoc.state,
-      dateRangeDoc.guides,
-      dateRangeDoc.tourPackageId
-    );
-    return vo;
+    return DateRangeVo.fromDocument(dateRangeDoc);
   }
   async update(
     id: string,
@@ -157,32 +181,24 @@ export class DateRangeService implements IDateRangeService {
     if (!drFound) {
       throw new HttpException(StatusCodes.NOT_FOUND, "DateRange not found");
     }
-    const drUpdated = await this.dateRangeRepository.updateDB(id, dto, session);
+    const drUpdated = await this.dateRangeRepository.updateDB(
+      id,
+      this.normalizeUpdate(dto),
+      session
+    );
     if (!drUpdated) {
       throw new HttpException(
         StatusCodes.INTERNAL_SERVER_ERROR,
         "Error updating DateRange"
       );
     }
-    return new DateRangeVo(
-      drUpdated._id.toString(),
-      drUpdated.dates,
-      drUpdated.state,
-      drUpdated.guides,
-      drUpdated.tourPackageId
-    );
+    return DateRangeVo.fromDocument(drUpdated);
   }
   async findById(id: string): Promise<DateRangeVo> {
     const drFound = await this.dateRangeRepository.findByIdDB(id);
     if (!drFound) {
       throw new HttpException(StatusCodes.NOT_FOUND, "DateRange not found");
     }
-    return new DateRangeVo(
-      drFound._id.toString(),
-      drFound.dates,
-      drFound.state,
-      drFound.guides,
-      drFound.tourPackageId
-    );
+    return DateRangeVo.fromDocument(drFound);
   }
 }

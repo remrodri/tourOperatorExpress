@@ -7,7 +7,9 @@
     "postinstall": "npm run build",
     "start": "node -r tsconfig-paths/register dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "test": "jest"
+    "test": "jest",
+    "migrate:date-ranges": "npm run build && node dist/database/migrations/runDateRangeMigration.js",
+    "simulate:data": "npm run build && node dist/database/simulation/runSimulation.js"
   },
   "keywords": [],
   "author": "",

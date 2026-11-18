@@ -13,4 +13,9 @@ export interface ITourPackage extends Document<Types.ObjectId> {
   itinerary: IItinerary;
   status: string;
   deleted: boolean;
+  dataOrigin?: "legacy" | "simulated" | "manual";
+  simulationId?: string;
+  simulationVersion?: string;
+  simulationSeed?: number;
+  simulationKey?: string;
 }

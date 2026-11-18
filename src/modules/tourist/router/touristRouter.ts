@@ -13,6 +13,18 @@ touristRouter.get("/tourists", (req, res, next) =>
   touristController.getAllTourists(req, res, next)
 );
 
+touristRouter.get("/tourists/feed", (req, res, next) =>
+  touristController.getTouristFeed(req, res, next)
+);
+
+touristRouter.get("/tourists/by-ids", (req, res, next) =>
+  touristController.getTouristsByIds(req, res, next)
+);
+
+touristRouter.get("/tourists/count", (req, res, next) =>
+  touristController.getTouristsCount(req, res, next)
+);
+
 touristRouter.put("/tourists/:id", (req, res, next) =>
   touristController.updateTourist(req, res, next)
 );

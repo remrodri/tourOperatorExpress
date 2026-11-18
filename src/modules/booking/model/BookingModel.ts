@@ -77,11 +77,39 @@ const BookingSchema: Schema = new Schema(
       type: Schema.Types.String,
       // required: [true, "Reservation code is required"],
     },
+    dataOrigin: {
+      type: Schema.Types.String,
+      enum: ["legacy", "simulated", "manual"],
+      required: false,
+    },
+    simulationId: {
+      type: Schema.Types.String,
+      required: false,
+    },
+    simulationVersion: {
+      type: Schema.Types.String,
+      required: false,
+    },
+    simulationSeed: {
+      type: Schema.Types.Number,
+      required: false,
+    },
+    simulationKey: {
+      type: Schema.Types.String,
+      required: false,
+    },
   },
   {
     timestamps: true,
     collection: "Bookings",
   }
 );
+
+BookingSchema.index({ createdAt: -1, _id: -1 });
+BookingSchema.index({ status: 1, createdAt: -1, _id: -1 });
+BookingSchema.index({ bookingCode: 1 });
+BookingSchema.index({ tourPackageId: 1, createdAt: -1, _id: -1 });
+BookingSchema.index({ dateRangeId: 1, createdAt: -1, _id: -1 });
+BookingSchema.index({ dateRangeId: 1, tourPackageId: 1 });
 
 export const BookingModel = mongoose.model<IBooking>("Booking", BookingSchema);

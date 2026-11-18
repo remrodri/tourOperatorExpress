@@ -12,6 +12,7 @@ const config: Config = {
     "^@repository/(.*)$": "<rootDir>/src/modules/auth/repository/$1",
     "^@service/(.*)$": "<rootDir>/src/modules/auth/service/$1",
     "^@controller/(.*)$": "<rootDir>/src/modules/auth/controller/$1",
+    "^src/(.*)$": "<rootDir>/src/$1",
   },
 };
 

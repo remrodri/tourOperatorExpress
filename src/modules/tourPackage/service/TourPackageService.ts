@@ -173,6 +173,8 @@ export class TourPackageService implements ITourPackageService {
             dto.dateRanges.map(async (dateRange) => {
               const dateRangeDto: DateRangeDto = {
                 dates: dateRange.dates,
+                capacity: dateRange.capacity,
+                dataOrigin: "manual",
                 state: "pending",
                 guides: dateRange.guides,
               };

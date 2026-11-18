@@ -1,8 +1,8 @@
-import { ITouristService } from "src/modules/tourist/service/ITouristService";
+import { ITouristService } from "../../tourist/service/ITouristService";
 import { CreateBookingDto } from "../dto/CreateBookingDto";
 import { BookingVo } from "../vo/BookingVo";
 import { IBookingService } from "./IBookingService";
-import { IPaymentService } from "src/modules/payment/service/IPaymentService";
+import { IPaymentService } from "../../payment/service/IPaymentService";
 import { ClientSession, Types } from "mongoose";
 import { IBookingRepository } from "../repository/IBookingRepository";
 import { CreatePaymentDto } from "../../payment/dto/CreatePaymentDto";
@@ -10,17 +10,29 @@ import { IBooking } from "../model/IBooking";
 import { UpdateBookingDto } from "../dto/UpdateBookingDto";
 import { UpdateAllDataBookingDto } from "../dto/UpdateAllDataBooking";
 import { BookingCreatedVo } from "../vo/BookignCreatedVo";
-import { TouristVo } from "src/modules/tourist/vo/TouristVo";
-import { PaymentVo } from "src/modules/payment/vo/PaymentVo";
+import { TouristVo } from "../../tourist/vo/TouristVo";
+import { PaymentVo } from "../../payment/vo/PaymentVo";
 import { BookingUpdatedVo } from "../vo/BookingUpdatedVo";
-import { CreateTourTypeDto } from "src/modules/tourType/dto/createTourTypeDto";
-import { CreateTouristDto } from "src/modules/tourist/dto/CreateTouristDto";
+import { CreateTourTypeDto } from "../../tourType/dto/createTourTypeDto";
+import { CreateTouristDto } from "../../tourist/dto/CreateTouristDto";
 import { BookingVoV2 } from "../vo/BookingVoV2";
-import { IPayment } from "src/modules/payment/model/IPayment";
+import { IPayment } from "../../payment/model/IPayment";
 import { UpdateBookingAttendanceListsDto } from "../dto/UpdateBookingAttendanceListsDto";
 import { BookingUpdatedAttendanceVo } from "../vo/BookingUpdatedAttendanceVo";
 import { CancelBookingDto } from "../dto/CancelBookingDto";
 import { randomBytes } from "crypto";
+import { HttpException } from "../../../middleware/httpException";
+import {
+  BookingDateRangeSummaryQueryDto,
+  BookingFeedQueryDto,
+} from "../dto/BookingFeedQueryDto";
+import {
+  decodeCursor,
+  encodeCursor,
+} from "../../../utils/pagination/cursorPagination";
+
+const escapeRegex = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export const generateBookingCode = (): string =>
   `RSV-${randomBytes(9).toString("base64url")}`;
@@ -277,6 +289,137 @@ export class BookingService implements IBookingService {
         throw new Error("Error desconocido al obtener bookings");
       }
     }
+  }
+
+  async getFeed(dto: BookingFeedQueryDto): Promise<{
+    items: BookingVoV2[];
+    pagination: { nextCursor: string | null; hasMore: boolean };
+  }> {
+    try {
+      const filter: Record<string, unknown> = {};
+      if (dto.status) filter.status = dto.status;
+      if (dto.tourPackageId) filter.tourPackageId = dto.tourPackageId;
+      if (dto.dateRangeId) filter.dateRangeId = dto.dateRangeId;
+      if (dto.bookingCode) {
+        filter.bookingCode = {
+          $regex: `^${escapeRegex(dto.bookingCode)}$`,
+          $options: "i",
+        };
+      }
+
+      const cursor = decodeCursor(dto.cursor);
+      const bookingDocs = await this.bookingRepository.getFeedDB(
+        filter,
+        cursor,
+        dto.limit
+      );
+      const hasMore = bookingDocs.length > dto.limit;
+      const visible = hasMore ? bookingDocs.slice(0, dto.limit) : bookingDocs;
+      const last = visible.at(-1);
+
+      return {
+        items: visible.map((booking) => this.mapToVoV2(booking)),
+        pagination: {
+          nextCursor:
+            hasMore && last
+              ? encodeCursor(last.createdAt as Date, last._id)
+              : null,
+          hasMore,
+        },
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        throw new Error(`Error al obtener reservas: ${error.message}`);
+      }
+      throw new Error("Error desconocido al obtener reservas");
+    }
+  }
+
+  async getDetail(id: string): Promise<{
+    booking: BookingVoV2;
+    tourists: TouristVo[];
+  }> {
+    const bookingDoc = await this.bookingRepository.getByIdDetailDB(id);
+    if (!bookingDoc) {
+      throw new Error(`Booking with id ${id} not found`);
+    }
+
+    const tourists = ((bookingDoc.touristsIds ?? []) as any[])
+      .filter((tourist) => tourist && tourist._id)
+      .map(
+        (tourist) =>
+          new TouristVo(
+            tourist._id.toString(),
+            tourist.firstName,
+            tourist.lastName,
+            tourist.phone,
+            tourist.email,
+            tourist.nationality,
+            tourist.documentType,
+            tourist.ci,
+            tourist.passportNumber,
+            tourist.dateOfBirth,
+            tourist.bookingIds ?? []
+          )
+      );
+
+    return { booking: this.mapToVoV2(bookingDoc), tourists };
+  }
+
+  async getReportSummary(): Promise<{
+    totalBookings: number;
+    totalRevenue: number;
+    years: number[];
+    byTourPackageMonth: {
+      tourPackageId: string;
+      year: number;
+      month: number;
+      count: number;
+      totalAmount: number;
+    }[];
+    bySellerTourPackage: {
+      sellerId: string;
+      tourPackageId: string;
+      count: number;
+    }[];
+    daily: { date: string; count: number }[];
+  }> {
+    const summary = await this.bookingRepository.getReportSummaryDB();
+    const total = summary.total[0] ?? {
+      totalBookings: 0,
+      totalRevenue: 0,
+    };
+
+    return {
+      totalBookings: total.totalBookings,
+      totalRevenue: total.totalRevenue,
+      years: summary.years.map((item) => item._id),
+      byTourPackageMonth: summary.byTourPackageMonth.map((item) => ({
+        tourPackageId: item.tourPackageId.toString(),
+        year: item.year,
+        month: item.month,
+        count: item.count,
+        totalAmount: item.totalAmount,
+      })),
+      bySellerTourPackage: summary.bySellerTourPackage.map((item) => ({
+        sellerId: item.sellerId.toString(),
+        tourPackageId: item.tourPackageId.toString(),
+        count: item.count,
+      })),
+      daily: summary.daily,
+    };
+  }
+
+  async getDateRangeSummary(
+    dto: BookingDateRangeSummaryQueryDto
+  ): Promise<{ bookingCount: number; touristCount: number }> {
+    return this.bookingRepository.getDateRangeSummaryDB(
+      dto.dateRangeId,
+      dto.tourPackageId
+    );
   }
 
   private mapToVoV2(bookingDoc: any): BookingVoV2 {

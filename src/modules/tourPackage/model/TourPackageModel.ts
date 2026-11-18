@@ -75,6 +75,27 @@ const TourPackageSchema: Schema = new Schema(
       type: Schema.Types.Boolean,
       default: false,
     },
+    dataOrigin: {
+      type: Schema.Types.String,
+      enum: ["legacy", "simulated", "manual"],
+      required: false,
+    },
+    simulationId: {
+      type: Schema.Types.String,
+      required: false,
+    },
+    simulationVersion: {
+      type: Schema.Types.String,
+      required: false,
+    },
+    simulationSeed: {
+      type: Schema.Types.Number,
+      required: false,
+    },
+    simulationKey: {
+      type: Schema.Types.String,
+      required: false,
+    },
   },
   {
     timestamps: true,

@@ -7,6 +7,14 @@ import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
 import { ITourist } from "../model/ITourist";
 import { UpdateTouristDto } from "../dto/UpdateTouristDto";
+import { TouristFeedQueryDto } from "../dto/TouristFeedQueryDto";
+import {
+  decodeCursor,
+  encodeCursor,
+} from "../../../utils/pagination/cursorPagination";
+
+const escapeRegex = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export class TouristService implements ITouristService {
   private readonly touristRepository: ITouristRepository;
@@ -89,6 +97,57 @@ export class TouristService implements ITouristService {
     }
     return touristDocs.map((tourist) => this.mapToVo(tourist));
   }
+  async getFeed(dto: TouristFeedQueryDto): Promise<{
+    items: TouristVo[];
+    pagination: { nextCursor: string | null; hasMore: boolean };
+  }> {
+    const filter: Record<string, unknown> = {};
+    if (dto.search) {
+      const regex = {
+        $regex: escapeRegex(dto.search),
+        $options: "i",
+      };
+      filter.$or = [
+        { firstName: regex },
+        { lastName: regex },
+        { email: regex },
+        { ci: regex },
+        { passportNumber: regex },
+        { phone: regex },
+      ];
+    }
+
+    const cursor = decodeCursor(dto.cursor);
+    const touristDocs = await this.touristRepository.getFeedDB(
+      filter,
+      cursor,
+      dto.limit
+    );
+    const hasMore = touristDocs.length > dto.limit;
+    const visible = hasMore ? touristDocs.slice(0, dto.limit) : touristDocs;
+    const last = visible.at(-1);
+
+    return {
+      items: visible.map((tourist) => this.mapToVo(tourist)),
+      pagination: {
+        nextCursor:
+          hasMore && last
+            ? encodeCursor(last.createdAt as Date, last._id)
+            : null,
+        hasMore,
+      },
+    };
+  }
+
+  async getByIds(ids: string[]): Promise<TouristVo[]> {
+    const touristDocs = await this.touristRepository.getByIdsDB(ids);
+    return touristDocs.map((tourist) => this.mapToVo(tourist));
+  }
+
+  async count(): Promise<number> {
+    return this.touristRepository.countDB();
+  }
+
   mapToVo(tourist: ITourist): TouristVo {
     return new TouristVo(
       tourist._id.toString(),

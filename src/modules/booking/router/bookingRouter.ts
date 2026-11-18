@@ -17,6 +17,22 @@ bookingRouter.get("/bookings", (req, res, next) =>
   bookingController.getAllBookings(req, res, next)
 );
 
+bookingRouter.get("/bookings/feed", (req, res, next) =>
+  bookingController.getBookingFeed(req, res, next)
+);
+
+bookingRouter.get("/bookings/report-summary", (req, res, next) =>
+  bookingController.getReportSummary(req, res, next)
+);
+
+bookingRouter.get("/bookings/date-range-summary", (req, res, next) =>
+  bookingController.getDateRangeSummary(req, res, next)
+);
+
+bookingRouter.get("/bookings/:id/detail", (req, res, next) =>
+  bookingController.getBookingDetail(req, res, next)
+);
+
 bookingRouter.put("/bookings/attendance-lists", (req, res, next) =>
   bookingController.updateBookingAttendanceLists(req, res, next)
 );

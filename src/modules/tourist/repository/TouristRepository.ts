@@ -4,6 +4,7 @@ import { ITourist } from "../model/ITourist";
 import { TouristModel } from "../model/TouristModel";
 import { ITouristRepository } from "./ITouristRepository";
 import { UpdateTouristDto } from "../dto/UpdateTouristDto";
+import { CursorValue } from "../../../utils/pagination/cursorPagination";
 
 export class TouristRepository implements ITouristRepository {
   updateWithoutSessionDB(
@@ -61,6 +62,37 @@ export class TouristRepository implements ITouristRepository {
 
   async getAllDB(): Promise<ITourist[]> {
     return await TouristModel.find().exec();
+  }
+
+  async getFeedDB(
+    filter: Record<string, unknown>,
+    cursor: CursorValue | null,
+    limit: number
+  ): Promise<ITourist[]> {
+    const cursorFilter = cursor
+      ? {
+          $or: [
+            { createdAt: { $lt: cursor.createdAt } },
+            { createdAt: cursor.createdAt, _id: { $lt: cursor.id } },
+          ],
+        }
+      : {};
+
+    return TouristModel.find({ ...filter, ...cursorFilter })
+      .sort({ createdAt: -1, _id: -1 })
+      .limit(limit + 1)
+      .lean()
+      .exec() as unknown as Promise<ITourist[]>;
+  }
+
+  async getByIdsDB(ids: string[]): Promise<ITourist[]> {
+    return TouristModel.find({ _id: { $in: ids } })
+      .lean()
+      .exec() as unknown as Promise<ITourist[]>;
+  }
+
+  async countDB(): Promise<number> {
+    return TouristModel.countDocuments().exec();
   }
   async addBookingToTourist(
     touristId: string,

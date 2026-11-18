@@ -12,4 +12,11 @@ export interface ITourist extends Document<Types.ObjectId> {
   dateOfBirth: string;
   bookingIds: string[];
   // status: string;
+  dataOrigin?: "legacy" | "simulated" | "manual";
+  simulationId?: string;
+  simulationVersion?: string;
+  simulationSeed?: number;
+  simulationKey?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

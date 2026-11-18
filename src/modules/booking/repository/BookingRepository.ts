@@ -3,7 +3,13 @@ import { IBooking } from "../model/IBooking";
 import { BookingVo } from "../vo/BookingVo";
 import { IBookingRepository } from "./IBookingRepository";
 import { BookingModel } from "../model/BookingModel";
-import { ClientSession, QueryOptions, startSession } from "mongoose";
+import {
+  ClientSession,
+  QueryOptions,
+  Types,
+  startSession,
+} from "mongoose";
+import { CursorValue } from "../../../utils/pagination/cursorPagination";
 import { UpdateBookingDto } from "../dto/UpdateBookingDto";
 import { BookingCreatedVo } from "../vo/BookignCreatedVo";
 import { UpdateAllDataBookingDto } from "../dto/UpdateAllDataBooking";
@@ -95,6 +101,186 @@ export class BookingRepository implements IBookingRepository {
     const bookings = await BookingModel.find().populate("paymentIds").exec();
     // console.log('bookings::: ', bookings);
     return bookings;
+  }
+
+  async getFeedDB(
+    filter: Record<string, unknown>,
+    cursor: CursorValue | null,
+    limit: number
+  ): Promise<IBooking[]> {
+    const cursorFilter = cursor
+      ? {
+          $or: [
+            { createdAt: { $lt: cursor.createdAt } },
+            { createdAt: cursor.createdAt, _id: { $lt: cursor.id } },
+          ],
+        }
+      : {};
+
+    return BookingModel.find({ ...filter, ...cursorFilter })
+      .sort({ createdAt: -1, _id: -1 })
+      .limit(limit + 1)
+      .populate("paymentIds")
+      .lean()
+      .exec() as unknown as Promise<IBooking[]>;
+  }
+
+  async getByIdDetailDB(id: string): Promise<IBooking | null> {
+    return BookingModel.findById(id)
+      .populate("paymentIds")
+      .populate("touristsIds")
+      .lean()
+      .exec() as unknown as Promise<IBooking | null>;
+  }
+
+  async getReportSummaryDB(): Promise<{
+    total: { totalBookings: number; totalRevenue: number }[];
+    years: { _id: number }[];
+    byTourPackageMonth: {
+      tourPackageId: Types.ObjectId;
+      year: number;
+      month: number;
+      count: number;
+      totalAmount: number;
+    }[];
+    bySellerTourPackage: {
+      sellerId: Types.ObjectId;
+      tourPackageId: Types.ObjectId;
+      count: number;
+    }[];
+    daily: { date: string; count: number }[];
+  }> {
+    const [result] = await BookingModel.aggregate([
+      {
+        $facet: {
+          total: [
+            {
+              $group: {
+                _id: null,
+                totalBookings: { $sum: 1 },
+                totalRevenue: {
+                  $sum: {
+                    $cond: [
+                      { $eq: ["$status", "cancelled"] },
+                      "$cancellationFee",
+                      "$totalPrice",
+                    ],
+                  },
+                },
+              },
+            },
+          ],
+          years: [
+            { $group: { _id: { $year: "$createdAt" } } },
+            { $sort: { _id: 1 } },
+          ],
+          byTourPackageMonth: [
+            {
+              $group: {
+                _id: {
+                  tourPackageId: "$tourPackageId",
+                  year: { $year: "$createdAt" },
+                  month: { $month: "$createdAt" },
+                },
+                count: { $sum: 1 },
+                totalAmount: { $sum: "$totalPrice" },
+              },
+            },
+            { $sort: { "_id.year": 1, "_id.month": 1 } },
+          ],
+          bySellerTourPackage: [
+            {
+              $group: {
+                _id: {
+                  sellerId: "$sellerId",
+                  tourPackageId: "$tourPackageId",
+                },
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          daily: [
+            {
+              $group: {
+                _id: {
+                  $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+                },
+                count: { $sum: 1 },
+              },
+            },
+            { $sort: { _id: 1 } },
+          ],
+        },
+      },
+    ]).exec();
+
+    return {
+      total: result?.total ?? [],
+      years: result?.years ?? [],
+      byTourPackageMonth: (result?.byTourPackageMonth ?? []).map(
+        (item: {
+          _id: {
+            tourPackageId: Types.ObjectId;
+            year: number;
+            month: number;
+          };
+          count: number;
+          totalAmount: number;
+        }) => ({
+          tourPackageId: item._id.tourPackageId,
+          year: item._id.year,
+          month: item._id.month,
+          count: item.count,
+          totalAmount: item.totalAmount,
+        })
+      ),
+      bySellerTourPackage: (result?.bySellerTourPackage ?? []).map(
+        (item: {
+          _id: { sellerId: Types.ObjectId; tourPackageId: Types.ObjectId };
+          count: number;
+        }) => ({
+          sellerId: item._id.sellerId,
+          tourPackageId: item._id.tourPackageId,
+          count: item.count,
+        })
+      ),
+      daily: (result?.daily ?? []).map(
+        (item: { _id: string; count: number }) => ({
+          date: item._id,
+          count: item.count,
+        })
+      ),
+    };
+  }
+
+  async getDateRangeSummaryDB(
+    dateRangeId: string,
+    tourPackageId?: string
+  ): Promise<{ bookingCount: number; touristCount: number }> {
+    const filter: Record<string, unknown> = {
+      dateRangeId: new Types.ObjectId(dateRangeId),
+    };
+    if (tourPackageId) {
+      filter.tourPackageId = new Types.ObjectId(tourPackageId);
+    }
+
+    const [result] = await BookingModel.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: null,
+          bookingCount: { $sum: 1 },
+          touristCount: {
+            $sum: { $size: { $ifNull: ["$touristsIds", []] } },
+          },
+        },
+      },
+    ]).exec();
+
+    return {
+      bookingCount: result?.bookingCount ?? 0,
+      touristCount: result?.touristCount ?? 0,
+    };
   }
   // private mapToVo(bookingDoc: IBooking): BookingVo {
   //   return {

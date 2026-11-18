@@ -7,6 +7,7 @@ import { UpdateAllDataBookingDto } from "../dto/UpdateAllDataBooking";
 import { BookingDto } from "../dto/BookingDto";
 import { BookingUpdatedVo } from "../vo/BookingUpdatedVo";
 import { BookingUpdatedAttendanceVo } from "../vo/BookingUpdatedAttendanceVo";
+import { CursorValue } from "../../../utils/pagination/cursorPagination";
 
 export interface IBookingRepository {
   updateBookingAttendanceLists(
@@ -23,6 +24,33 @@ export interface IBookingRepository {
     session?: mongoose.ClientSession
   ): Promise<IBooking>;
   getAllDB(): Promise<IBooking[]>;
+  getFeedDB(
+    filter: Record<string, unknown>,
+    cursor: CursorValue | null,
+    limit: number
+  ): Promise<IBooking[]>;
+  getByIdDetailDB(id: string): Promise<IBooking | null>;
+  getReportSummaryDB(): Promise<{
+    total: { totalBookings: number; totalRevenue: number }[];
+    years: { _id: number }[];
+    byTourPackageMonth: {
+      tourPackageId: mongoose.Types.ObjectId;
+      year: number;
+      month: number;
+      count: number;
+      totalAmount: number;
+    }[];
+    bySellerTourPackage: {
+      sellerId: mongoose.Types.ObjectId;
+      tourPackageId: mongoose.Types.ObjectId;
+      count: number;
+    }[];
+    daily: { date: string; count: number }[];
+  }>;
+  getDateRangeSummaryDB(
+    dateRangeId: string,
+    tourPackageId?: string
+  ): Promise<{ bookingCount: number; touristCount: number }>;
   createDB(dto: any, session: mongoose.ClientSession,bookingCode: string): Promise<IBooking>;
   // createWithTransaction(
   //   createBookingFn: (session?: mongoose.ClientSession) => Promise<BookingVo>

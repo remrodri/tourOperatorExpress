@@ -10,6 +10,11 @@ import fs from "fs";
 import { BookingUpdatedVo } from "../vo/BookingUpdatedVo";
 import { UpdateBookingAttendanceListsDto } from "../dto/UpdateBookingAttendanceListsDto";
 import { CancelBookingDto } from "../dto/CancelBookingDto";
+import {
+  BookingDateRangeSummaryQuerySchema,
+  BookingFeedQuerySchema,
+} from "../dto/BookingFeedQueryDto";
+import { HttpException } from "../../../middleware/httpException";
 
 export class BookingController {
   private readonly bookingService: IBookingService;
@@ -177,6 +182,84 @@ export class BookingController {
   //     next(error);
   //   }
   // }
+
+  async getBookingFeed(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const dto = BookingFeedQuerySchema.parse(req.query);
+      const data = await this.bookingService.getFeed(dto);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setData(data)
+        .setMessage("Bookings found successfully")
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getBookingDetail(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const data = await this.bookingService.getDetail(req.params.id);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setData(data)
+        .setMessage("Booking found successfully")
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("not found")) {
+        next(new HttpException(StatusCodes.NOT_FOUND, error.message));
+        return;
+      }
+      next(error);
+    }
+  }
+
+  async getReportSummary(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const data = await this.bookingService.getReportSummary();
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setData(data)
+        .setMessage("Booking summary found successfully")
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getDateRangeSummary(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const dto = BookingDateRangeSummaryQuerySchema.parse(req.query);
+      const data = await this.bookingService.getDateRangeSummary(dto);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setData(data)
+        .setMessage("Departure summary found successfully")
+        .build();
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 
   async getAllBookings(
     req: Request,
