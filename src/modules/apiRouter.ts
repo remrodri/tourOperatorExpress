@@ -11,6 +11,7 @@ import dateRangeRouter from "./dateRange/router/dateRangeRouter";
 import bookingRouter from "./booking/router/bookingRouter";
 import paymentRouter from "./payment/router/paymentRouter";
 import touristRouter from "./tourist/router/touristRouter";
+import analyticsRouter from "./analytics/router/analyticsRouter";
 
 const apiRouter: Router = Router();
 
@@ -26,5 +27,6 @@ apiRouter.use("/v1", dateRangeRouter);
 apiRouter.use("/v1", bookingRouter);
 apiRouter.use("/v1", paymentRouter);
 apiRouter.use("/v1", touristRouter);
+apiRouter.use("/v1", analyticsRouter);
 
 export default apiRouter;
