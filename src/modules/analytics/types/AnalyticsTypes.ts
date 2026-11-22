@@ -3,6 +3,13 @@ export const ANALYTICS_CONTRACT_VERSION = "1.0.0";
 export const ANALYTICS_RELEASE = "t808-v1";
 export const ANALYTICS_DESCRIPTIVE_CONTRACT_VERSION = "1.1.0";
 export const ANALYTICS_DESCRIPTIVE_RELEASE = "t809-v1";
+export const ANALYTICS_TRENDS_CONTRACT_VERSION = "1.2.0";
+export const ANALYTICS_TRENDS_RELEASE = "t810-v1";
+export const ANALYTICS_TRENDS_AS_OF = "2026-11-13";
+export const ANALYTICS_TRENDS_TIME_ZONE = "UTC";
+export const ANALYTICS_TRENDS_MAX_POINTS = 400;
+export const ANALYTICS_TRENDS_DEFAULT_WINDOW_DAYS = 30;
+export const ANALYTICS_TRENDS_MAX_DEFAULT_WINDOW_DAYS = 365;
 
 export const ANALYTICS_ALLOWED_ROLES = [
   "administrador",
@@ -183,5 +190,95 @@ export interface AnalyticsDepartureListResponse {
 export interface AnalyticsDepartureDetailResponse {
   data: AnalyticsDepartureDetailData;
   meta: AnalyticsDescriptiveMeta;
+  warnings: string[];
+}
+
+export type AnalyticsTrendGranularity = "day" | "week" | "month";
+export type AnalyticsTrendState =
+  | "available"
+  | "insufficient-history"
+  | "no-activity";
+export type AnalyticsTrendWindowStatus = "open" | "closed" | "indeterminate";
+
+export interface AnalyticsTrendPoint {
+  intervalStart: string;
+  intervalEnd: string;
+  complete: boolean;
+  observedDays: number;
+  bookings: number;
+  tourists: number;
+  reservedRevenue: number;
+  cumulativeBookings: number;
+  cumulativeTourists: number;
+  cumulativeReservedRevenue: number;
+  touristsPerDay: number;
+}
+
+export interface AnalyticsTrendDeparture {
+  id: string;
+  startDate: string | null;
+  endDate: string | null;
+  state: string | null;
+  dataOrigin: string | null;
+  capacity: number | null;
+  tourPackage: AnalyticsDeparturePackage | null;
+  destination: AnalyticsDepartureDestination | null;
+}
+
+export interface AnalyticsTrendTotals {
+  bookings: number;
+  tourists: number;
+  reservedRevenue: number;
+  eventDays: number;
+}
+
+export interface AnalyticsTrendWindow {
+  from: string;
+  to: string;
+  observedDays: number;
+  status: AnalyticsTrendWindowStatus;
+}
+
+export interface AnalyticsTrendRhythm {
+  window: AnalyticsTrendWindow;
+  bookingsPerDay: number;
+  touristsPerDay: number;
+}
+
+export interface AnalyticsTrendData {
+  departure: AnalyticsTrendDeparture;
+  state: AnalyticsTrendState;
+  totals: AnalyticsTrendTotals;
+  series: {
+    granularity: AnalyticsTrendGranularity;
+    timeZone: typeof ANALYTICS_TRENDS_TIME_ZONE;
+    points: AnalyticsTrendPoint[];
+  };
+  rhythm: AnalyticsTrendRhythm;
+}
+
+export interface AnalyticsTrendObservation {
+  eventField: "booking.createdAt";
+  fromInclusive: true;
+  toInclusive: true;
+  granularity: AnalyticsTrendGranularity;
+  timeZone: typeof ANALYTICS_TRENDS_TIME_ZONE;
+  maxPoints: number;
+  defaultWindowDays: number;
+  maxDefaultWindowDays: number;
+  asOfRule: "booking.createdAt <= asOf";
+  cumulativeScope: "observation-window";
+}
+
+export interface AnalyticsTrendsMeta extends AnalyticsDescriptiveMeta {
+  granularity: AnalyticsTrendGranularity;
+  timeZone: typeof ANALYTICS_TRENDS_TIME_ZONE;
+  asOf: string;
+  observation: AnalyticsTrendObservation;
+}
+
+export interface AnalyticsTrendsResponse {
+  data: AnalyticsTrendData;
+  meta: AnalyticsTrendsMeta;
   warnings: string[];
 }

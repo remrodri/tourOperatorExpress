@@ -6,6 +6,7 @@ import { TourPackageModel } from "../../tourPackage/model/TourPackageModel";
 import { TouristDestinationModel } from "../../touristDestination/model/TouristDestinationModel";
 import {
   ANALYTICS_INCLUDED_BOOKING_STATUSES,
+  ANALYTICS_TRENDS_AS_OF,
   AnalyticsFilters,
 } from "../types/AnalyticsTypes";
 import { buildDepartureCursorFilter } from "../utils/departureCursor";
@@ -15,6 +16,8 @@ import {
   AnalyticsDepartureReference,
   AnalyticsPackageReference,
   AnalyticsSummaryRaw,
+  AnalyticsTrendDataRaw,
+  AnalyticsTrendDepartureRaw,
   IAnalyticsRepository,
 } from "./IAnalyticsRepository";
 
@@ -23,6 +26,22 @@ const PAYMENTS_COLLECTION = PaymentModel.collection.name;
 const TOUR_PACKAGES_COLLECTION = TourPackageModel.collection.name;
 const TOURIST_DESTINATIONS_COLLECTION =
   TouristDestinationModel.collection.name;
+
+interface AnalyticsTrendEventAggregateRaw {
+  _id: string;
+  bookings: number;
+  tourists: number;
+  reservedRevenue: number;
+}
+
+interface AnalyticsTrendAggregateRaw {
+  context: AnalyticsTrendDepartureRaw[];
+  events: AnalyticsTrendEventAggregateRaw[];
+  diagnostics: Array<{
+    invalidDateBookings?: number;
+    afterAsOfBookings?: number;
+  }>;
+}
 
 const VALID_CAPACITY_EXPRESSION = {
   $and: [
@@ -225,6 +244,198 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     return departure ?? null;
   }
 
+  async findTrendData(
+    id: string,
+    filters: AnalyticsFilters,
+  ): Promise<AnalyticsTrendDataRaw | null> {
+    if (!filters.dateRangeId) {
+      return null;
+    }
+
+    const match = await this.buildTrendMatch(id, filters);
+    const asOf = new Date(`${ANALYTICS_TRENDS_AS_OF}T23:59:59.999Z`);
+    const pipeline: PipelineStage[] = [
+      { $match: match },
+      {
+        $lookup: {
+          from: BOOKINGS_COLLECTION,
+          let: { departureId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$dateRangeId", "$$departureId"] },
+                status: { $in: [...ANALYTICS_INCLUDED_BOOKING_STATUSES] },
+              },
+            },
+            {
+              $project: {
+                createdAt: { $ifNull: ["$createdAt", null] },
+                tourists: {
+                  $size: { $ifNull: ["$touristsIds", []] },
+                },
+                reservedRevenue: { $ifNull: ["$totalPrice", 0] },
+              },
+            },
+          ],
+          as: "includedBookings",
+        },
+      },
+      {
+        $project: {
+          startDate: { $ifNull: ["$startDate", null] },
+          endDate: { $ifNull: ["$endDate", null] },
+          state: { $ifNull: ["$state", null] },
+          dataOrigin: { $ifNull: ["$dataOrigin", null] },
+          capacity: { $ifNull: ["$capacity", null] },
+          tourPackageId: { $ifNull: ["$tourPackageId", null] },
+          validBookings: {
+            $filter: {
+              input: "$includedBookings",
+              as: "booking",
+              cond: {
+                $and: [
+                  { $eq: [{ $type: "$$booking.createdAt" }, "date"] },
+                  { $lte: ["$$booking.createdAt", asOf] },
+                ],
+              },
+            },
+          },
+          invalidDateBookings: {
+            $size: {
+              $filter: {
+                input: "$includedBookings",
+                as: "booking",
+                cond: {
+                  $ne: [{ $type: "$$booking.createdAt" }, "date"],
+                },
+              },
+            },
+          },
+          afterAsOfBookings: {
+            $size: {
+              $filter: {
+                input: "$includedBookings",
+                as: "booking",
+                cond: {
+                  $and: [
+                    { $eq: [{ $type: "$$booking.createdAt" }, "date"] },
+                    { $gt: ["$$booking.createdAt", asOf] },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: TOUR_PACKAGES_COLLECTION,
+          localField: "tourPackageId",
+          foreignField: "_id",
+          as: "tourPackage",
+        },
+      },
+      {
+        $unwind: {
+          path: "$tourPackage",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: TOURIST_DESTINATIONS_COLLECTION,
+          localField: "tourPackage.touristDestination",
+          foreignField: "_id",
+          as: "destination",
+        },
+      },
+      {
+        $unwind: {
+          path: "$destination",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $facet: {
+          context: [
+            {
+              $project: {
+                id: { $toString: "$_id" },
+                startDate: 1,
+                endDate: 1,
+                state: 1,
+                dataOrigin: 1,
+                capacity: 1,
+                tourPackage: nullableReferenceProjection("tourPackage"),
+                destination: nullableReferenceProjection("destination"),
+              },
+            },
+          ],
+          events: [
+            { $unwind: "$validBookings" },
+            {
+              $group: {
+                _id: {
+                  $dateToString: {
+                    format: "%Y-%m-%d",
+                    date: "$validBookings.createdAt",
+                    timezone: "UTC",
+                  },
+                },
+                bookings: { $sum: 1 },
+                tourists: { $sum: "$validBookings.tourists" },
+                reservedRevenue: {
+                  $sum: "$validBookings.reservedRevenue",
+                },
+              },
+            },
+            { $sort: { _id: 1 } },
+          ],
+          diagnostics: [
+            {
+              $project: {
+                _id: 0,
+                invalidDateBookings: {
+                  $ifNull: ["$invalidDateBookings", 0],
+                },
+                afterAsOfBookings: {
+                  $ifNull: ["$afterAsOfBookings", 0],
+                },
+              },
+            },
+          ],
+        },
+      },
+    ];
+
+    const [raw] = await DateRangeModel.aggregate<AnalyticsTrendAggregateRaw>(
+      pipeline,
+    );
+
+    const departure = raw?.context[0];
+
+    if (!departure) {
+      return null;
+    }
+
+    const events = raw.events
+      .filter((event) => typeof event._id === "string")
+      .map((event) => ({
+        date: event._id,
+        bookings: event.bookings,
+        tourists: event.tourists,
+        reservedRevenue: event.reservedRevenue,
+      }));
+    const diagnostics = raw.diagnostics[0];
+
+    return {
+      departure,
+      events,
+      invalidDateBookings: diagnostics?.invalidDateBookings ?? 0,
+      afterAsOfBookings: diagnostics?.afterAsOfBookings ?? 0,
+    };
+  }
+
   private async findTourPackageIdsByDestination(
     destinationId: string,
   ): Promise<string[]> {
@@ -236,6 +447,29 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       .lean();
 
     return packages.map((tourPackage) => tourPackage._id.toString());
+  }
+
+  private async buildTrendMatch(
+    id: string,
+    filters: AnalyticsFilters,
+  ): Promise<Record<string, unknown>> {
+    const match: Record<string, unknown> = {
+      _id: new Types.ObjectId(id),
+    };
+
+    if (filters.tourPackageId) {
+      match.tourPackageId = new Types.ObjectId(filters.tourPackageId);
+    } else if (filters.destinationId) {
+      const packageIds = await this.findTourPackageIdsByDestination(
+        filters.destinationId,
+      );
+
+      match.tourPackageId = {
+        $in: packageIds.map((packageId) => new Types.ObjectId(packageId)),
+      };
+    }
+
+    return match;
   }
 
   private async buildBaseMatch(

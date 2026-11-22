@@ -2,9 +2,12 @@ import { StatusCodes } from "http-status-codes";
 import { HttpException } from "../../../middleware/httpException";
 import { AnalyticsDeparturesQueryDto } from "../dto/AnalyticsDeparturesQueryDto";
 import { AnalyticsOverviewQueryDto } from "../dto/AnalyticsOverviewQueryDto";
+import { AnalyticsTrendsQueryDto } from "../dto/AnalyticsTrendsQueryDto";
 import {
   AnalyticsDepartureRaw,
   AnalyticsSummaryRaw,
+  AnalyticsTrendDataRaw,
+  AnalyticsTrendDepartureRaw,
   IAnalyticsRepository,
 } from "../repository/IAnalyticsRepository";
 import {
@@ -15,6 +18,12 @@ import {
   AnalyticsFoundation,
   AnalyticsSummary,
   AnalyticsSummaryResponse,
+  AnalyticsTrendData,
+  AnalyticsTrendDeparture,
+  AnalyticsTrendGranularity,
+  AnalyticsTrendPoint,
+  AnalyticsTrendsMeta,
+  AnalyticsTrendsResponse,
   ANALYTICS_ALLOWED_ROLES,
   ANALYTICS_CONTRACT_VERSION,
   ANALYTICS_DESCRIPTIVE_CONTRACT_VERSION,
@@ -22,6 +31,13 @@ import {
   ANALYTICS_FICTITIOUS_DATA_WARNING,
   ANALYTICS_MODULE_NAME,
   ANALYTICS_RELEASE,
+  ANALYTICS_TRENDS_AS_OF,
+  ANALYTICS_TRENDS_CONTRACT_VERSION,
+  ANALYTICS_TRENDS_DEFAULT_WINDOW_DAYS,
+  ANALYTICS_TRENDS_MAX_DEFAULT_WINDOW_DAYS,
+  ANALYTICS_TRENDS_MAX_POINTS,
+  ANALYTICS_TRENDS_RELEASE,
+  ANALYTICS_TRENDS_TIME_ZONE,
 } from "../types/AnalyticsTypes";
 import {
   decodeDepartureCursor,
@@ -53,6 +69,236 @@ const toIsoDate = (value: Date | null): string | null =>
   value instanceof Date && !Number.isNaN(value.getTime())
     ? value.toISOString()
     : null;
+
+const DAY_MS = 86_400_000;
+const TRENDS_AS_OF_INSTANT = new Date(
+  `${ANALYTICS_TRENDS_AS_OF}T23:59:59.999Z`,
+);
+const TRENDS_AS_OF_DAY = new Date(`${ANALYTICS_TRENDS_AS_OF}T00:00:00.000Z`);
+
+interface TrendBucket {
+  bucketStart: Date;
+  intervalStart: Date;
+  intervalEnd: Date;
+  complete: boolean;
+  observedDays: number;
+}
+
+interface TrendWindow {
+  from: Date;
+  to: Date;
+  defaultTruncated: boolean;
+}
+
+interface TrendEventTotals {
+  bookings: number;
+  tourists: number;
+  reservedRevenue: number;
+}
+
+const toUtcDay = (value: Date | string): Date => {
+  const date = value instanceof Date ? value : new Date(value);
+
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
+};
+
+const addUtcDays = (value: Date, days: number): Date =>
+  new Date(value.getTime() + days * DAY_MS);
+
+const differenceInDays = (end: Date, start: Date): number =>
+  Math.round((end.getTime() - start.getTime()) / DAY_MS);
+
+const toUtcDayIso = (value: Date): string => value.toISOString();
+
+const floorTrendBucket = (
+  value: Date,
+  granularity: AnalyticsTrendGranularity,
+): Date => {
+  if (granularity === "week") {
+    const day = value.getUTCDay();
+    return addUtcDays(value, -((day + 6) % 7));
+  }
+
+  if (granularity === "month") {
+    return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), 1));
+  }
+
+  return toUtcDay(value);
+};
+
+const nextTrendBucket = (
+  value: Date,
+  granularity: AnalyticsTrendGranularity,
+): Date => {
+  if (granularity === "week") {
+    return addUtcDays(value, 7);
+  }
+
+  if (granularity === "month") {
+    return new Date(
+      Date.UTC(value.getUTCFullYear(), value.getUTCMonth() + 1, 1),
+    );
+  }
+
+  return addUtcDays(value, 1);
+};
+
+const countTrendBuckets = (
+  from: Date,
+  to: Date,
+  granularity: AnalyticsTrendGranularity,
+): number => {
+  let cursor = floorTrendBucket(from, granularity);
+  let count = 0;
+
+  while (cursor.getTime() <= to.getTime()) {
+    count += 1;
+
+    if (count > ANALYTICS_TRENDS_MAX_POINTS) {
+      return count;
+    }
+
+    cursor = nextTrendBucket(cursor, granularity);
+  }
+
+  return count;
+};
+
+const buildTrendBuckets = (
+  from: Date,
+  to: Date,
+  granularity: AnalyticsTrendGranularity,
+): TrendBucket[] => {
+  const buckets: TrendBucket[] = [];
+  const toExclusive = addUtcDays(to, 1);
+  let bucketStart = floorTrendBucket(from, granularity);
+
+  while (bucketStart.getTime() <= to.getTime()) {
+    const next = nextTrendBucket(bucketStart, granularity);
+    const intervalStart =
+      bucketStart.getTime() < from.getTime() ? from : bucketStart;
+    const intervalEnd =
+      next.getTime() > toExclusive.getTime() ? toExclusive : next;
+
+    buckets.push({
+      bucketStart,
+      intervalStart,
+      intervalEnd,
+      complete:
+        bucketStart.getTime() >= from.getTime() &&
+        next.getTime() <= toExclusive.getTime(),
+      observedDays: Math.max(
+        differenceInDays(intervalEnd, intervalStart),
+        0,
+      ),
+    });
+
+    bucketStart = next;
+  }
+
+  return buckets;
+};
+
+const parseTrendEventDay = (value: string): Date | null => {
+  const day = new Date(`${value}T00:00:00.000Z`);
+
+  return Number.isNaN(day.getTime()) ? null : day;
+};
+
+const buildTrendSeries = (
+  events: AnalyticsTrendDataRaw["events"],
+  from: Date,
+  to: Date,
+  granularity: AnalyticsTrendGranularity,
+): {
+  points: AnalyticsTrendPoint[];
+  totals: TrendEventTotals;
+  eventDays: number;
+} => {
+  const buckets = buildTrendBuckets(from, to, granularity);
+  const eventsByBucket = new Map<number, TrendEventTotals>();
+  const eventDays = new Set<string>();
+  const totals: TrendEventTotals = {
+    bookings: 0,
+    tourists: 0,
+    reservedRevenue: 0,
+  };
+
+  for (const event of events) {
+    const eventDay = parseTrendEventDay(event.date);
+
+    if (
+      !eventDay ||
+      eventDay.getTime() < from.getTime() ||
+      eventDay.getTime() > to.getTime()
+    ) {
+      continue;
+    }
+
+    const bucketKey = floorTrendBucket(eventDay, granularity).getTime();
+    const current = eventsByBucket.get(bucketKey) ?? {
+      bookings: 0,
+      tourists: 0,
+      reservedRevenue: 0,
+    };
+    const bookings = nonNegativeInteger(event.bookings);
+    const tourists = nonNegativeInteger(event.tourists);
+    const reservedRevenue = nonNegativeNumber(event.reservedRevenue);
+
+    current.bookings += bookings;
+    current.tourists += tourists;
+    current.reservedRevenue += reservedRevenue;
+    eventsByBucket.set(bucketKey, current);
+    totals.bookings += bookings;
+    totals.tourists += tourists;
+    totals.reservedRevenue += reservedRevenue;
+    eventDays.add(event.date);
+  }
+
+  let cumulativeBookings = 0;
+  let cumulativeTourists = 0;
+  let cumulativeReservedRevenue = 0;
+  const points = buckets.map((bucket) => {
+    const event = eventsByBucket.get(bucket.bucketStart.getTime()) ?? {
+      bookings: 0,
+      tourists: 0,
+      reservedRevenue: 0,
+    };
+
+    cumulativeBookings += event.bookings;
+    cumulativeTourists += event.tourists;
+    cumulativeReservedRevenue += event.reservedRevenue;
+
+    return {
+      intervalStart: toUtcDayIso(bucket.intervalStart),
+      intervalEnd: toUtcDayIso(bucket.intervalEnd),
+      complete: bucket.complete,
+      observedDays: bucket.observedDays,
+      bookings: event.bookings,
+      tourists: event.tourists,
+      reservedRevenue: round2(event.reservedRevenue),
+      cumulativeBookings,
+      cumulativeTourists,
+      cumulativeReservedRevenue: round2(cumulativeReservedRevenue),
+      touristsPerDay:
+        bucket.observedDays > 0
+          ? round2(event.tourists / bucket.observedDays)
+          : 0,
+    };
+  });
+
+  return {
+    points,
+    totals: {
+      bookings: totals.bookings,
+      tourists: totals.tourists,
+      reservedRevenue: round2(totals.reservedRevenue),
+    },
+    eventDays: eventDays.size,
+  };
+};
 
 const normalizeCapacity = (value: number | null): number | null =>
   typeof value === "number" &&
@@ -244,6 +490,264 @@ export class AnalyticsService implements IAnalyticsService {
       ),
       warnings: this.buildDepartureWarnings(departure),
     };
+  }
+
+  async getDepartureTrends(
+    filters: AnalyticsTrendsQueryDto,
+  ): Promise<AnalyticsTrendsResponse> {
+    await this.validateFilterReferences(filters);
+
+    const raw = await this.analyticsRepository.findTrendData(
+      filters.dateRangeId,
+      filters,
+    );
+
+    if (!raw) {
+      throw notFound(
+        "La salida turística indicada no existe o no coincide con los filtros",
+      );
+    }
+
+    const window = this.resolveTrendWindow(raw, filters);
+    const pointCount = countTrendBuckets(
+      window.from,
+      window.to,
+      filters.granularity,
+    );
+
+    if (pointCount > ANALYTICS_TRENDS_MAX_POINTS) {
+      throw badRequest(
+        `La ventana no puede superar ${ANALYTICS_TRENDS_MAX_POINTS} puntos para la granularidad ${filters.granularity}`,
+      );
+    }
+
+    const series = buildTrendSeries(
+      raw.events,
+      window.from,
+      window.to,
+      filters.granularity,
+    );
+    const state =
+      series.totals.bookings === 0
+        ? "no-activity"
+        : series.eventDays < 2
+          ? "insufficient-history"
+          : "available";
+    const observedDays = Math.max(
+      differenceInDays(addUtcDays(window.to, 1), window.from),
+      0,
+    );
+    const departure = this.toTrendDeparture(raw.departure);
+    const startDay = departure.startDate
+      ? toUtcDay(departure.startDate)
+      : null;
+    const windowStatus = startDay
+      ? window.to.getTime() >= startDay.getTime()
+        ? "closed"
+        : "open"
+      : "indeterminate";
+    const data: AnalyticsTrendData = {
+      departure,
+      state,
+      totals: {
+        bookings: series.totals.bookings,
+        tourists: series.totals.tourists,
+        reservedRevenue: series.totals.reservedRevenue,
+        eventDays: series.eventDays,
+      },
+      series: {
+        granularity: filters.granularity,
+        timeZone: ANALYTICS_TRENDS_TIME_ZONE,
+        points: series.points,
+      },
+      rhythm: {
+        window: {
+          from: toUtcDayIso(window.from),
+          to: toUtcDayIso(window.to),
+          observedDays,
+          status: windowStatus,
+        },
+        bookingsPerDay:
+          observedDays > 0
+            ? round2(series.totals.bookings / observedDays)
+            : 0,
+        touristsPerDay:
+          observedDays > 0
+            ? round2(series.totals.tourists / observedDays)
+            : 0,
+      },
+    };
+    const meta = this.buildTrendsMeta(filters, window);
+
+    return {
+      data,
+      meta,
+      warnings: this.buildTrendWarnings(
+        data,
+        raw.invalidDateBookings,
+        raw.afterAsOfBookings,
+        window.defaultTruncated,
+      ),
+    };
+  }
+
+  private resolveTrendWindow(
+    raw: AnalyticsTrendDataRaw,
+    filters: AnalyticsTrendsQueryDto,
+  ): TrendWindow {
+    const departureStartDay = raw.departure.startDate
+      ? toUtcDay(raw.departure.startDate)
+      : null;
+    const defaultTo =
+      departureStartDay &&
+      departureStartDay.getTime() < TRENDS_AS_OF_DAY.getTime()
+        ? departureStartDay
+        : TRENDS_AS_OF_DAY;
+    const to = filters.to ? toUtcDay(filters.to) : defaultTo;
+
+    if (filters.from) {
+      return {
+        from: toUtcDay(filters.from),
+        to,
+        defaultTruncated: false,
+      };
+    }
+
+    const firstEvent = raw.events
+      .map((event) => parseTrendEventDay(event.date))
+      .find(
+        (eventDay): eventDay is Date =>
+          eventDay !== null && eventDay.getTime() <= to.getTime(),
+      );
+    const minimumFrom = addUtcDays(
+      to,
+      -(ANALYTICS_TRENDS_MAX_DEFAULT_WINDOW_DAYS - 1),
+    );
+    const candidateFrom = firstEvent
+      ? firstEvent
+      : addUtcDays(to, -(ANALYTICS_TRENDS_DEFAULT_WINDOW_DAYS - 1));
+    const from =
+      candidateFrom.getTime() < minimumFrom.getTime()
+        ? minimumFrom
+        : candidateFrom;
+
+    return {
+      from,
+      to,
+      defaultTruncated:
+        candidateFrom.getTime() < minimumFrom.getTime(),
+    };
+  }
+
+  private toTrendDeparture(
+    raw: AnalyticsTrendDepartureRaw,
+  ): AnalyticsTrendDeparture {
+    return {
+      id: raw.id,
+      startDate: toIsoDate(raw.startDate),
+      endDate: toIsoDate(raw.endDate),
+      state: raw.state,
+      dataOrigin: raw.dataOrigin,
+      capacity: normalizeCapacity(raw.capacity),
+      tourPackage: raw.tourPackage,
+      destination: raw.destination,
+    };
+  }
+
+  private buildTrendsMeta(
+    filters: AnalyticsTrendsQueryDto,
+    window: TrendWindow,
+  ): AnalyticsTrendsMeta {
+    const from = toUtcDayIso(window.from);
+    const to = toUtcDayIso(window.to);
+    const commonFilters: AnalyticsFilters = {
+      ...this.pickCommonFilters(filters),
+      from,
+      to,
+      dateRangeId: filters.dateRangeId,
+    };
+
+    return {
+      module: ANALYTICS_MODULE_NAME,
+      contractVersion: ANALYTICS_TRENDS_CONTRACT_VERSION,
+      release: ANALYTICS_TRENDS_RELEASE,
+      status: "descriptive",
+      generatedAt: new Date().toISOString(),
+      scope:
+        "Tendencias y ritmo de reservas de una salida turística en ventana acotada",
+      period: { from, to },
+      filters: commonFilters,
+      dataOrigin: "simulated",
+      granularity: filters.granularity,
+      timeZone: ANALYTICS_TRENDS_TIME_ZONE,
+      asOf: TRENDS_AS_OF_INSTANT.toISOString(),
+      observation: {
+        eventField: "booking.createdAt",
+        fromInclusive: true,
+        toInclusive: true,
+        granularity: filters.granularity,
+        timeZone: ANALYTICS_TRENDS_TIME_ZONE,
+        maxPoints: ANALYTICS_TRENDS_MAX_POINTS,
+        defaultWindowDays: ANALYTICS_TRENDS_DEFAULT_WINDOW_DAYS,
+        maxDefaultWindowDays:
+          ANALYTICS_TRENDS_MAX_DEFAULT_WINDOW_DAYS,
+        asOfRule: "booking.createdAt <= asOf",
+        cumulativeScope: "observation-window",
+      },
+    };
+  }
+
+  private buildTrendWarnings(
+    data: AnalyticsTrendData,
+    invalidDateBookings: number,
+    afterAsOfBookings: number,
+    defaultTruncated: boolean,
+  ): string[] {
+    const warnings = [ANALYTICS_FICTITIOUS_DATA_WARNING];
+
+    if (data.state === "no-activity") {
+      warnings.push(
+        "NO_ACTIVITY: no hay reservas incluidas en la ventana de observación.",
+      );
+    }
+
+    if (data.state === "insufficient-history") {
+      warnings.push(
+        "INSUFFICIENT_HISTORY: solo hay actividad en un día de la ventana; la serie no permite describir una tendencia estable.",
+      );
+    }
+
+    if (data.rhythm.window.status === "open") {
+      warnings.push(
+        "PARTIAL_WINDOW: la ventana termina antes del inicio de la salida; el ritmo corresponde a una observación parcial.",
+      );
+    }
+
+    if (data.series.points.some((point) => !point.complete)) {
+      warnings.push(
+        "PARTIAL_BUCKET: el primer o el último intervalo no cubre un período calendario completo.",
+      );
+    }
+
+    if (invalidDateBookings > 0) {
+      warnings.push(
+        `INVALID_BOOKING_DATE: ${invalidDateBookings} reserva(s) incluidas no tienen una fecha de creación válida y quedaron fuera de la serie.`,
+      );
+    }
+
+    if (afterAsOfBookings > 0) {
+      warnings.push(
+        `EVENTS_AFTER_AS_OF: ${afterAsOfBookings} reserva(s) fueron creadas después de asOf y quedaron fuera de la serie.`,
+      );
+    }
+
+    if (defaultTruncated) {
+      warnings.push(
+        `DEFAULT_WINDOW_TRUNCATED: la ventana por defecto se limitó a ${ANALYTICS_TRENDS_MAX_DEFAULT_WINDOW_DAYS} días.`,
+      );
+    }
+
+    return warnings;
   }
 
   private buildSummary(raw: AnalyticsSummaryRaw): AnalyticsSummary {

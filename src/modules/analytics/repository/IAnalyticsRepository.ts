@@ -43,6 +43,31 @@ export interface AnalyticsDepartureQueryOptions {
   cursor: DepartureCursorValue | null;
 }
 
+export interface AnalyticsTrendDepartureRaw {
+  id: string;
+  startDate: Date | null;
+  endDate: Date | null;
+  state: string | null;
+  dataOrigin: string | null;
+  capacity: number | null;
+  tourPackage: { id: string; name: string | null } | null;
+  destination: { id: string; name: string | null } | null;
+}
+
+export interface AnalyticsTrendEventRaw {
+  date: string;
+  bookings: number;
+  tourists: number;
+  reservedRevenue: number;
+}
+
+export interface AnalyticsTrendDataRaw {
+  departure: AnalyticsTrendDepartureRaw;
+  events: AnalyticsTrendEventRaw[];
+  invalidDateBookings: number;
+  afterAsOfBookings: number;
+}
+
 export interface IAnalyticsRepository {
   findTourPackage(id: string): Promise<AnalyticsPackageReference | null>;
   destinationExists(id: string): Promise<boolean>;
@@ -56,4 +81,8 @@ export interface IAnalyticsRepository {
     id: string,
     filters: AnalyticsFilters,
   ): Promise<AnalyticsDepartureRaw | null>;
+  findTrendData(
+    id: string,
+    filters: AnalyticsFilters,
+  ): Promise<AnalyticsTrendDataRaw | null>;
 }

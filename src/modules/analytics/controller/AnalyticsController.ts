@@ -4,6 +4,7 @@ import { ApiResponseBuilder } from "../../../utils/response/apiResponseBuilder";
 import { AnalyticsDepartureParamsSchema } from "../dto/AnalyticsDepartureParamsDto";
 import { AnalyticsDeparturesQuerySchema } from "../dto/AnalyticsDeparturesQueryDto";
 import { AnalyticsOverviewQuerySchema } from "../dto/AnalyticsOverviewQueryDto";
+import { AnalyticsTrendsQuerySchema } from "../dto/AnalyticsTrendsQueryDto";
 import { IAnalyticsService } from "../service/IAnalyticsService";
 
 export class AnalyticsController {
@@ -79,6 +80,30 @@ export class AnalyticsController {
         ...response,
         meta: departures.meta,
         warnings: departures.warnings,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getDepartureTrends(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const filters = AnalyticsTrendsQuerySchema.parse(req.query);
+      const trends = await this.analyticsService.getDepartureTrends(filters);
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setMessage("Analytics departure trends retrieved successfully")
+        .setData(trends.data)
+        .build();
+
+      res.status(StatusCodes.OK).json({
+        ...response,
+        meta: trends.meta,
+        warnings: trends.warnings,
       });
     } catch (error) {
       next(error);

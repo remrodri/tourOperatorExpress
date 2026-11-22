@@ -1,10 +1,12 @@
 import { AnalyticsDeparturesQueryDto } from "../dto/AnalyticsDeparturesQueryDto";
 import { AnalyticsOverviewQueryDto } from "../dto/AnalyticsOverviewQueryDto";
+import { AnalyticsTrendsQueryDto } from "../dto/AnalyticsTrendsQueryDto";
 import {
   AnalyticsDepartureDetailResponse,
   AnalyticsDepartureListResponse,
   AnalyticsFoundation,
   AnalyticsSummaryResponse,
+  AnalyticsTrendsResponse,
 } from "../types/AnalyticsTypes";
 
 export interface IAnalyticsService {
@@ -19,4 +21,7 @@ export interface IAnalyticsService {
     id: string,
     filters: AnalyticsOverviewQueryDto,
   ): Promise<AnalyticsDepartureDetailResponse>;
+  getDepartureTrends(
+    filters: AnalyticsTrendsQueryDto,
+  ): Promise<AnalyticsTrendsResponse>;
 }

@@ -33,6 +33,13 @@ analyticsRouter.get(
 );
 
 analyticsRouter.get(
+  "/analytics/trends",
+  authMiddleware,
+  analyticsRoleGuard,
+  (req, res, next) => analyticsController.getDepartureTrends(req, res, next),
+);
+
+analyticsRouter.get(
   "/analytics/departures/:id",
   authMiddleware,
   analyticsRoleGuard,
