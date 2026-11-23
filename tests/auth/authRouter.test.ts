@@ -38,4 +38,19 @@ describe("Auth Routes", () => {
 
     expect(response.status).toBe(401);
   });
+
+  it("does not write credentials, user data or tokens to console", async () => {
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => undefined);
+
+    try {
+      const response = await request(app)
+        .post("/api/v1/auth/login")
+        .send({ email: "test@example.com", password: "password123" });
+
+      expect(response.status).toBe(200);
+      expect(consoleSpy).not.toHaveBeenCalled();
+    } finally {
+      consoleSpy.mockRestore();
+    }
+  });
 });

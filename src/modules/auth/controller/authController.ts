@@ -16,9 +16,7 @@ export class AuthController {
   ): Promise<void> => {
     try {
       // const loginData = req.body;
-      console.log("req.body::: ", req.body);
       const token = await this.authService.login(req.body);
-      console.log("token::: ", token);
       const response = new ApiResponseBuilder()
         .setStatusCode(StatusCodes.OK)
         .setMessage("Usuario logeado satisfactoriamiente")
