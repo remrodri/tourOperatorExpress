@@ -43,7 +43,7 @@ export const stableObjectId = (
 export interface RandomSource {
   next: () => number;
   int: (min: number, max: number) => number;
-  pick: <T>(items: T[]) => T;
+  pick: <T>(items: readonly T[]) => T;
   chance: (probability: number) => boolean;
 }
 
@@ -62,7 +62,7 @@ export const createRandom = (seed: string | number): RandomSource => {
   const int = (min: number, max: number): number =>
     Math.floor(next() * (max - min + 1)) + min;
 
-  const pick = <T>(items: T[]): T => items[int(0, items.length - 1)];
+  const pick = <T>(items: readonly T[]): T => items[int(0, items.length - 1)];
 
   const chance = (probability: number): boolean => next() < probability;
 

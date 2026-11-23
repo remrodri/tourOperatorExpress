@@ -252,26 +252,23 @@ export const validateSimulationDataset = (
 
     const touristIssues: string[] = [];
     for (const tourist of tourists) {
-      if (!tourist.email.endsWith("@example.invalid")) {
-        touristIssues.push(`${tourist._id}: correo no ficticio`);
+      if (!/^[a-z0-9.]+@example\.com$/.test(tourist.email)) {
+        touristIssues.push(`${tourist._id}: correo ficticio inválido`);
       }
-      if (!tourist.phone.startsWith("SIM-")) {
-        touristIssues.push(`${tourist._id}: teléfono no ficticio`);
+      if (!/^[67]\d{7}$/.test(tourist.phone)) {
+        touristIssues.push(`${tourist._id}: teléfono ficticio inválido`);
       }
-      if (!tourist.firstName.includes("Simulado")) {
-        touristIssues.push(`${tourist._id}: nombre no ficticio`);
+      if (/simulad|registro/i.test(`${tourist.firstName} ${tourist.lastName}`)) {
+        touristIssues.push(`${tourist._id}: nombre con marca técnica visible`);
       }
-      if (
-        tourist.nationality !== "Simulada" ||
-        tourist.documentType !== "SIMULADO"
-      ) {
-        touristIssues.push(`${tourist._id}: nacionalidad o documento no ficticio`);
+      if (!tourist.nationality || !["ci", "passport"].includes(tourist.documentType)) {
+        touristIssues.push(`${tourist._id}: nacionalidad o tipo documental inválido`);
       }
-      if (
-        !tourist.ci.startsWith("SIM-CI-") ||
-        !tourist.passportNumber.startsWith("SIM-PP-")
-      ) {
-        touristIssues.push(`${tourist._id}: documentos no ficticios`);
+      if (tourist.documentType === "ci" && !/^\d{7,8}$/.test(tourist.ci)) {
+        touristIssues.push(`${tourist._id}: CI ficticio inválido`);
+      }
+      if (tourist.documentType === "passport" && !/^[A-Z]{2}\d{7}$/.test(tourist.passportNumber)) {
+        touristIssues.push(`${tourist._id}: pasaporte ficticio inválido`);
       }
       try {
         parseSimulationDate(tourist.dateOfBirth);

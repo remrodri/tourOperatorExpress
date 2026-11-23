@@ -11,6 +11,7 @@ import {
   stableObjectId,
   stableStringify,
 } from "./simulationRandom";
+import { buildRealisticTouristIdentity } from "./touristIdentityProfile";
 
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -619,18 +620,10 @@ const buildPackage = (
           departureStart
         )}:${bookingIndex}:${touristIndex}`;
         const touristId = stableObjectId(simulationId, touristKey);
-        const touristCode = touristId.slice(0, 12).toUpperCase();
+        const identity = buildRealisticTouristIdentity(touristId);
         const touristDoc: SimulationTouristDoc = {
           _id: touristId,
-          firstName: "Turista Simulado",
-          lastName: `Registro ${touristCode}`,
-          phone: `SIM-${touristCode}`,
-          email: `turista.simulado.${touristCode.toLowerCase()}@example.invalid`,
-          nationality: "Simulada",
-          documentType: "SIMULADO",
-          ci: `SIM-CI-${touristCode}`,
-          passportNumber: `SIM-PP-${touristCode}`,
-          dateOfBirth: "1990-01-01",
+          ...identity,
           bookingIds: [bookingId],
           dataOrigin: "simulated",
           simulationId,
@@ -795,7 +788,7 @@ const buildPackage = (
         _id: bookingId,
         touristsIds: bookingTourists.map((tourist) => tourist._id),
         dateRangeId: departureId,
-        notes: "Reserva simulada",
+        notes: "Reserva registrada mediante canal web",
         paymentIds: paymentDocs.map((payment) => payment._id),
         sellerId: seller.id,
         status,
@@ -1035,7 +1028,7 @@ export const buildSimulationDataset = (
           dayNumber: dayIndex + 1,
           activities: [
             {
-              description: `Actividad simulada del día ${dayIndex + 1}`,
+              description: `Actividad programada del día ${dayIndex + 1}`,
               time: "09:00",
             },
           ],
