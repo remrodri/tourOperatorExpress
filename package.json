@@ -9,7 +9,8 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "test": "jest",
     "migrate:date-ranges": "npm run build && node dist/database/migrations/runDateRangeMigration.js",
-    "simulate:data": "npm run build && node dist/database/simulation/runSimulation.js"
+    "simulate:data": "npm run build && node dist/database/simulation/runSimulation.js",
+    "dataset:predictive": "npm run build && node dist/modules/analytics/dataset/runPredictiveDataset.js"
   },
   "keywords": [],
   "author": "",
