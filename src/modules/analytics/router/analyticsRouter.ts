@@ -40,6 +40,21 @@ analyticsRouter.get(
 );
 
 analyticsRouter.get(
+  "/analytics/predictions/metrics",
+  authMiddleware,
+  analyticsRoleGuard,
+  (req, res, next) => analyticsController.getPredictionMetrics(req, res, next),
+);
+
+analyticsRouter.get(
+  "/analytics/departures/:id/prediction",
+  authMiddleware,
+  analyticsRoleGuard,
+  (req, res, next) =>
+    analyticsController.getDeparturePrediction(req, res, next),
+);
+
+analyticsRouter.get(
   "/analytics/departures/:id",
   authMiddleware,
   analyticsRoleGuard,

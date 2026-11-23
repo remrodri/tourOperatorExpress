@@ -285,6 +285,20 @@ const historicalBaseline = (record: PredictiveDatasetRecord): number => {
   return predictionCount(Math.max(record.features.confirmedTourists, occupancy * record.features.capacity));
 };
 
+export const predictWithArtifact = (
+  artifact: CandidateModelArtifact,
+  record: PredictiveDatasetRecord,
+): number =>
+  artifact.kind === "ridge"
+    ? predictRidge(artifact, record)
+    : predictTree(artifact, record);
+
+export const predictAccumulatedBaseline = (
+  record: PredictiveDatasetRecord,
+): number => record.features.confirmedTourists;
+
+export const predictHistoricalRemainingBaseline = historicalBaseline;
+
 const improvement = (baseline: number, candidate: number): number =>
   baseline === 0 ? 0 : round(((baseline - candidate) / baseline) * 100, 4);
 
