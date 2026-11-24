@@ -41,8 +41,10 @@ import {
   ANALYTICS_ECONOMIC_CONTRACT_VERSION,
   ANALYTICS_ECONOMIC_RELEASE,
   AnalyticsEconomicResponse,
+  ANALYTICS_ECONOMIC_AS_OF,
 } from "../types/AnalyticsTypes";
 import { calculateEconomicViability } from "../domain/economicViability";
+import { buildEconomicRecommendation } from "../domain/economicRecommendation";
 import {
   decodeDepartureCursor,
   encodeDepartureCursor,
@@ -511,6 +513,11 @@ export class AnalyticsService implements IAnalyticsService {
       nonNegativeInteger(raw.tourists),
       predictionAvailable ? predictedFinalTourists : null,
     );
+    const recommendation = buildEconomicRecommendation(
+      raw.economicPlan,
+      result,
+      new Date(ANALYTICS_ECONOMIC_AS_OF),
+    );
     const warnings = [ANALYTICS_FICTITIOUS_DATA_WARNING];
     if (!predictionAvailable) {
       warnings.push(`PREDICTION_NOT_USED: la estimación está en estado ${predictionState}; el análisis estimado no se publica.`);
@@ -524,6 +531,7 @@ export class AnalyticsService implements IAnalyticsService {
         predictionState,
         predictionHorizonDays: horizonDays,
         ...result,
+        recommendation,
       },
       meta: {
         module: "analytics",
