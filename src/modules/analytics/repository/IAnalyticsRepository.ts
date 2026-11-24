@@ -1,5 +1,6 @@
 import { AnalyticsFilters } from "../types/AnalyticsTypes";
 import { DepartureCursorValue } from "../utils/departureCursor";
+import type { EconomicPlan } from "../../dateRange/domain/economicPlanning";
 
 export interface AnalyticsPackageReference {
   destinationId: string;
@@ -20,6 +21,7 @@ export interface AnalyticsDepartureRaw {
   bookings: number;
   reservedRevenue: number;
   registeredPayments: number;
+  economicPlan: EconomicPlan | null;
   tourPackage: { id: string; name: string | null } | null;
   destination: { id: string; name: string | null } | null;
 }

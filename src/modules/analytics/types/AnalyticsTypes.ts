@@ -10,6 +10,8 @@ export const ANALYTICS_TRENDS_TIME_ZONE = "UTC";
 export const ANALYTICS_TRENDS_MAX_POINTS = 400;
 export const ANALYTICS_TRENDS_DEFAULT_WINDOW_DAYS = 30;
 export const ANALYTICS_TRENDS_MAX_DEFAULT_WINDOW_DAYS = 365;
+export const ANALYTICS_ECONOMIC_CONTRACT_VERSION = "1.4.0";
+export const ANALYTICS_ECONOMIC_RELEASE = "t1205-v1";
 
 export const ANALYTICS_ALLOWED_ROLES = [
   "administrador",
@@ -190,6 +192,23 @@ export interface AnalyticsDepartureListResponse {
 export interface AnalyticsDepartureDetailResponse {
   data: AnalyticsDepartureDetailData;
   meta: AnalyticsDescriptiveMeta;
+  warnings: string[];
+}
+
+export interface AnalyticsEconomicResponse {
+  data: import("../domain/economicViability").EconomicViabilityResult & {
+    departureId: string;
+    predictionState: import("../prediction/PredictiveAnalyticsTypes").AnalyticsPredictionState;
+    predictionHorizonDays: 7 | 14 | 30;
+  };
+  meta: {
+    module: "analytics";
+    contractVersion: typeof ANALYTICS_ECONOMIC_CONTRACT_VERSION;
+    release: typeof ANALYTICS_ECONOMIC_RELEASE;
+    status: "economic";
+    generatedAt: string;
+    dataOrigin: "simulated";
+  };
   warnings: string[];
 }
 

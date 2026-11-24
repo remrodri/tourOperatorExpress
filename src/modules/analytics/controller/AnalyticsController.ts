@@ -9,6 +9,7 @@ import {
   AnalyticsPredictionQuerySchema,
 } from "../dto/AnalyticsPredictionQueryDto";
 import { AnalyticsTrendsQuerySchema } from "../dto/AnalyticsTrendsQueryDto";
+import { AnalyticsEconomicsQuerySchema } from "../dto/AnalyticsEconomicsQueryDto";
 import { PredictiveAnalyticsService } from "../prediction/PredictiveAnalyticsService";
 import { IAnalyticsService } from "../service/IAnalyticsService";
 
@@ -70,6 +71,36 @@ export class AnalyticsController {
         ...response,
         meta: prediction.meta,
         warnings: prediction.warnings,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getDepartureEconomics(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const params = AnalyticsDepartureParamsSchema.parse(req.params);
+      const query = AnalyticsEconomicsQuerySchema.parse(req.query);
+      const prediction = await this.predictiveAnalyticsService.getPrediction(params.id, query);
+      const economics = await this.analyticsService.getDepartureEconomics(
+        params.id,
+        query.horizonDays,
+        prediction.data.state,
+        prediction.data.state === "available" ? prediction.data.predictedFinalTourists : null,
+      );
+      const response = new ApiResponseBuilder()
+        .setStatusCode(StatusCodes.OK)
+        .setMessage("Analytics departure economics retrieved successfully")
+        .setData(economics.data)
+        .build();
+      res.status(StatusCodes.OK).json({
+        ...response,
+        meta: economics.meta,
+        warnings: [...new Set([...prediction.warnings, ...economics.warnings])],
       });
     } catch (error) {
       next(error);

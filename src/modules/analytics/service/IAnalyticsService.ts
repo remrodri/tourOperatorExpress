@@ -7,6 +7,7 @@ import {
   AnalyticsFoundation,
   AnalyticsSummaryResponse,
   AnalyticsTrendsResponse,
+  AnalyticsEconomicResponse,
 } from "../types/AnalyticsTypes";
 
 export interface IAnalyticsService {
@@ -24,4 +25,10 @@ export interface IAnalyticsService {
   getDepartureTrends(
     filters: AnalyticsTrendsQueryDto,
   ): Promise<AnalyticsTrendsResponse>;
+  getDepartureEconomics(
+    id: string,
+    horizonDays: 7 | 14 | 30,
+    predictionState: import("../prediction/PredictiveAnalyticsTypes").AnalyticsPredictionState,
+    predictedFinalTourists: number | null,
+  ): Promise<AnalyticsEconomicResponse>;
 }

@@ -38,7 +38,11 @@ import {
   ANALYTICS_TRENDS_MAX_POINTS,
   ANALYTICS_TRENDS_RELEASE,
   ANALYTICS_TRENDS_TIME_ZONE,
+  ANALYTICS_ECONOMIC_CONTRACT_VERSION,
+  ANALYTICS_ECONOMIC_RELEASE,
+  AnalyticsEconomicResponse,
 } from "../types/AnalyticsTypes";
+import { calculateEconomicViability } from "../domain/economicViability";
 import {
   decodeDepartureCursor,
   encodeDepartureCursor,
@@ -489,6 +493,47 @@ export class AnalyticsService implements IAnalyticsService {
         "Detalle descriptivo de una salida turística",
       ),
       warnings: this.buildDepartureWarnings(departure),
+    };
+  }
+
+  async getDepartureEconomics(
+    id: string,
+    horizonDays: 7 | 14 | 30,
+    predictionState: import("../prediction/PredictiveAnalyticsTypes").AnalyticsPredictionState,
+    predictedFinalTourists: number | null,
+  ): Promise<AnalyticsEconomicResponse> {
+    const raw = await this.analyticsRepository.findDepartureById(id, {});
+    if (!raw) throw notFound("Salida turística no encontrada");
+    const predictionAvailable = predictionState === "available";
+    const result = calculateEconomicViability(
+      raw.economicPlan,
+      normalizeCapacity(raw.capacity),
+      nonNegativeInteger(raw.tourists),
+      predictionAvailable ? predictedFinalTourists : null,
+    );
+    const warnings = [ANALYTICS_FICTITIOUS_DATA_WARNING];
+    if (!predictionAvailable) {
+      warnings.push(`PREDICTION_NOT_USED: la estimación está en estado ${predictionState}; el análisis estimado no se publica.`);
+    }
+    if (result.status === "economic-data-missing") warnings.push("ECONOMIC_DATA_MISSING: la salida no tiene plan económico.");
+    if (result.status === "non-positive-contribution") warnings.push("NON_POSITIVE_CONTRIBUTION: el precio no supera el costo variable por turista.");
+    if (result.status === "capacity-insufficient") warnings.push("CAPACITY_INSUFFICIENT: el mínimo final supera la capacidad registrada.");
+    return {
+      data: {
+        departureId: id,
+        predictionState,
+        predictionHorizonDays: horizonDays,
+        ...result,
+      },
+      meta: {
+        module: "analytics",
+        contractVersion: ANALYTICS_ECONOMIC_CONTRACT_VERSION,
+        release: ANALYTICS_ECONOMIC_RELEASE,
+        status: "economic",
+        generatedAt: new Date().toISOString(),
+        dataOrigin: "simulated",
+      },
+      warnings,
     };
   }
 

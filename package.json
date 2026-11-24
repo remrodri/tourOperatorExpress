@@ -12,6 +12,7 @@
     "simulate:data": "npm run build && node dist/database/simulation/runSimulation.js",
     "simulate:refresh-tourists": "npm run build && node dist/database/simulation/refreshTouristIdentities.js",
     "simulate:refresh-visible-labels": "npm run build && node dist/database/simulation/refreshVisibleSimulationLabels.js",
+    "simulate:economic-plans": "npm run build && node dist/database/simulation/runEconomicPlanSimulation.js",
     "dataset:predictive": "npm run build && node dist/modules/analytics/dataset/runPredictiveDataset.js",
     "model:predictive": "npm run build && node dist/modules/analytics/prediction/runPredictiveModel.js"
   },

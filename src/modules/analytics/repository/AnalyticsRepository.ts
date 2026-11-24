@@ -620,6 +620,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         bookings: { $ifNull: ["$bookingCount", 0] },
         reservedRevenue: { $ifNull: ["$reservedRevenue", 0] },
         registeredPayments: { $ifNull: ["$registeredPayments", 0] },
+        economicPlan: { $ifNull: ["$economicPlan", null] },
         tourPackage: includeContext
           ? nullableReferenceProjection("tourPackage")
           : null,

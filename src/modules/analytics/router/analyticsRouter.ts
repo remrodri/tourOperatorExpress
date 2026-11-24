@@ -55,6 +55,13 @@ analyticsRouter.get(
 );
 
 analyticsRouter.get(
+  "/analytics/departures/:id/economics",
+  authMiddleware,
+  analyticsRoleGuard,
+  (req, res, next) => analyticsController.getDepartureEconomics(req, res, next),
+);
+
+analyticsRouter.get(
   "/analytics/departures/:id",
   authMiddleware,
   analyticsRoleGuard,
