@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { parseLegacyDepartureDate } from "../domain/dateRangeNormalization";
+import { EconomicPlanDto } from "./EconomicPlanDto";
 
 const legacyDateSchema = z
   .string()
@@ -19,6 +20,7 @@ export const UpdateDateRangeDto = z
       .int("La capacidad debe ser un número entero")
       .positive("La capacidad debe ser mayor a 0")
       .optional(),
+    economicPlan: EconomicPlanDto.optional(),
     dataOrigin: z.enum(["legacy", "simulated", "manual"]).optional(),
     state: z.enum(["pending", "completed", "cancelled"]).optional(),
     guides: z.string().array().optional(),

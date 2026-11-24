@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { parseLegacyDepartureDate } from "../domain/dateRangeNormalization";
+import { EconomicPlanDto } from "./EconomicPlanDto";
 
 const legacyDateSchema = z
   .string()
@@ -18,6 +19,7 @@ export const DateRangeDto = z
       .number()
       .int("La capacidad debe ser un número entero")
       .positive("La capacidad debe ser mayor a 0"),
+    economicPlan: EconomicPlanDto.optional(),
     dataOrigin: z.enum(["legacy", "simulated", "manual"]).default("manual"),
     state: z.enum(["pending", "completed", "cancelled"]).default("pending"),
     guides: z.string().array().optional(),
@@ -38,6 +40,15 @@ export const DateRangeDto = z
         message: "La fecha final no puede ser anterior a la fecha inicial",
         path: ["endDate"],
       });
+    }
+
+    if (value.economicPlan && value.startDate) {
+      if (value.economicPlan.planningStartedAt >= value.economicPlan.decisionDeadline) {
+        context.addIssue({ code: z.ZodIssueCode.custom, message: "El inicio del seguimiento debe ser anterior a la fecha límite", path: ["economicPlan", "planningStartedAt"] });
+      }
+      if (value.economicPlan.decisionDeadline >= value.startDate) {
+        context.addIssue({ code: z.ZodIssueCode.custom, message: "La fecha límite debe ser anterior al inicio de la salida", path: ["economicPlan", "decisionDeadline"] });
+      }
     }
   });
 

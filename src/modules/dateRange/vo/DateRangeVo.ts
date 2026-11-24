@@ -1,6 +1,11 @@
 import type { DateRangeDataOrigin } from "../domain/dateRangeNormalization";
 import { tryResolveDateRangeBounds } from "../domain/dateRangeNormalization";
 import type { IDateRange } from "../model/IDateRange";
+import {
+  evaluateEconomicPlan,
+  type EconomicEvaluation,
+  type EconomicPlan,
+} from "../domain/economicPlanning";
 
 export class DateRangeVo {
   constructor(
@@ -14,7 +19,9 @@ export class DateRangeVo {
     public readonly capacity?: number,
     public readonly dataOrigin?: DateRangeDataOrigin,
     public readonly createdAt?: Date,
-    public readonly updatedAt?: Date
+    public readonly updatedAt?: Date,
+    public readonly economicPlan?: EconomicPlan,
+    public readonly economicEvaluation?: EconomicEvaluation
   ) {}
 
   static fromDocument(dateRange: IDateRange): DateRangeVo {
@@ -35,7 +42,9 @@ export class DateRangeVo {
       typeof dateRange.capacity === "number" ? dateRange.capacity : undefined,
       dateRange.dataOrigin ?? "legacy",
       dateRange.createdAt,
-      dateRange.updatedAt
+      dateRange.updatedAt,
+      dateRange.economicPlan,
+      evaluateEconomicPlan(dateRange.economicPlan, dateRange.capacity)
     );
   }
 }

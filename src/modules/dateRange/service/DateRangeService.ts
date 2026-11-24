@@ -13,6 +13,10 @@ import {
   DateRangeNormalizationError,
   resolveDateRangeBounds,
 } from "../domain/dateRangeNormalization";
+import {
+  assertEconomicPlanDates,
+  type EconomicPlan,
+} from "../domain/economicPlanning";
 
 type DateRangeBoundsSource = {
   dates?: string[];
@@ -32,6 +36,25 @@ export class DateRangeService implements IDateRangeService {
     this.tourPackageService = tourPackageService;
   }
 
+  private validateEconomicPlan(
+    plan: EconomicPlan | undefined,
+    startDate: Date | undefined,
+  ) {
+    if (!plan) return;
+    try {
+      assertEconomicPlanDates(plan, startDate);
+    } catch (error) {
+      throw new HttpException(
+        StatusCodes.BAD_REQUEST,
+        error instanceof Error ? error.message : "Plan económico inválido",
+      );
+    }
+  }
+
+  private markEconomicPlanUpdated(plan: EconomicPlan): EconomicPlan {
+    return { ...plan, updatedAt: new Date() };
+  }
+
   private normalizeCreate(dto: DateRangeDto): DateRangeDto {
     try {
       const bounds = resolveDateRangeBounds({
@@ -40,7 +63,16 @@ export class DateRangeService implements IDateRangeService {
         endDate: dto.endDate,
       });
 
-      return { ...dto, ...bounds, dataOrigin: dto.dataOrigin ?? "manual" };
+      const normalized = {
+        ...dto,
+        ...bounds,
+        dataOrigin: dto.dataOrigin ?? "manual",
+        economicPlan: dto.economicPlan
+          ? this.markEconomicPlanUpdated(dto.economicPlan)
+          : undefined,
+      };
+      this.validateEconomicPlan(normalized.economicPlan, normalized.startDate);
+      return normalized;
     } catch (error) {
       if (error instanceof DateRangeNormalizationError) {
         throw new HttpException(StatusCodes.BAD_REQUEST, error.message);
@@ -83,7 +115,7 @@ export class DateRangeService implements IDateRangeService {
     }
     const drUpdated = await this.dateRangeRepository.updateDateRangeDB(
       id,
-      this.normalizeUpdate(dto)
+      this.prepareUpdate(dto, drFound)
     );
     if (!drUpdated) {
       throw new HttpException(
@@ -93,6 +125,24 @@ export class DateRangeService implements IDateRangeService {
     }
 
     return DateRangeVo.fromDocument(drUpdated);
+  }
+
+  private prepareUpdate<T extends DateRangeBoundsSource & { economicPlan?: EconomicPlan }>(
+    dto: T,
+    existing: IDateRange,
+  ): T & Partial<DateRangeBounds> {
+    const normalized = this.normalizeUpdate(dto);
+    if (normalized.economicPlan) {
+      normalized.economicPlan = this.markEconomicPlanUpdated(
+        normalized.economicPlan,
+      );
+    }
+    const existingStartDate = DateRangeVo.fromDocument(existing).startDate;
+    this.validateEconomicPlan(
+      normalized.economicPlan ?? existing.economicPlan,
+      normalized.startDate ?? existingStartDate,
+    );
+    return normalized;
   }
   async addTourPackageIdToDateRange(
     id: string,
@@ -183,7 +233,7 @@ export class DateRangeService implements IDateRangeService {
     }
     const drUpdated = await this.dateRangeRepository.updateDB(
       id,
-      this.normalizeUpdate(dto),
+      this.prepareUpdate(dto, drFound),
       session
     );
     if (!drUpdated) {

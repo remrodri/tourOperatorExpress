@@ -146,4 +146,87 @@ describe("DateRange departure contract", () => {
     expect(response.body.data.endDate).toBe("2026-04-22T00:00:00.000Z");
     expect(response.body.data.capacity).toBe(8);
   });
+
+  it("stores an optional economic plan and projects its derived evaluation", async () => {
+    const tourPackage = await createTourPackage();
+    const response = await request(app).post("/api/v1/date-range").send({
+      dates: ["15-03-2026", "16-03-2026"],
+      capacity: 20,
+      guides: [],
+      tourPackageId: tourPackage._id.toString(),
+      economicPlan: {
+        fixedCosts: {
+          transportation: 2000,
+          guide: 500,
+          administration: 300,
+          fixedLodging: 0,
+          other: 0,
+        },
+        variableCostsPerTourist: {
+          food: 100,
+          tickets: 50,
+          lodging: 0,
+          insurance: 0,
+          other: 0,
+        },
+        pricePerTourist: 500,
+        planningStartedAt: "2026-01-01T00:00:00.000Z",
+        decisionDeadline: "2026-03-08T00:00:00.000Z",
+        updatedAt: "2000-01-01T00:00:00.000Z",
+      },
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.economicPlan.currency).toBe("BOB");
+    expect(response.body.data.economicPlan.version).toBe("t1202-v1");
+    expect(response.body.data.economicPlan.updatedAt).not.toBe(
+      "2000-01-01T00:00:00.000Z",
+    );
+    expect(response.body.data.economicEvaluation).toMatchObject({
+      status: "available",
+      fixedCostsTotal: 2800,
+      variableCostPerTourist: 150,
+      contributionMarginPerTourist: 350,
+      economicMinimum: 8,
+      finalMinimum: 8,
+    });
+  });
+
+  it("rejects a fractional operational minimum", async () => {
+    const tourPackage = await createTourPackage();
+    const response = await request(app).post("/api/v1/date-range").send({
+      dates: ["10-03-2026", "15-03-2026"],
+      capacity: 20,
+      guides: [],
+      tourPackageId: tourPackage._id.toString(),
+      economicPlan: {
+        fixedCosts: { transportation: 2000, guide: 500 },
+        variableCostsPerTourist: { food: 100, tickets: 50 },
+        pricePerTourist: 500,
+        operationalMinimum: 8.5,
+        planningStartedAt: "2026-01-01T00:00:00.000Z",
+        decisionDeadline: "2026-03-08T00:00:00.000Z",
+      },
+    });
+
+    expect(response.status).toBe(400);
+  });
+
+  it("rejects economic dates that do not precede the departure", async () => {
+    const tourPackage = await createTourPackage();
+    const response = await request(app).post("/api/v1/date-range").send({
+      dates: ["15-03-2026"],
+      capacity: 20,
+      guides: [],
+      tourPackageId: tourPackage._id.toString(),
+      economicPlan: {
+        fixedCosts: { transportation: 1, guide: 1 },
+        variableCostsPerTourist: { food: 1, tickets: 1 },
+        pricePerTourist: 10,
+        planningStartedAt: "2026-03-01T00:00:00.000Z",
+        decisionDeadline: "2026-03-16T00:00:00.000Z",
+      },
+    });
+    expect(response.status).toBe(400);
+  });
 });
