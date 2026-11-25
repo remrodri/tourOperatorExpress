@@ -27,6 +27,9 @@ export interface EconomicRecommendation {
 
 const round4 = (value: number): number => Math.round(value * 10_000) / 10_000;
 
+const missingTouristsText = (value: number): string =>
+  value === 1 ? "falta 1 turista" : `faltan ${value} turistas`;
+
 export const buildEconomicRecommendation = (
   plan: EconomicPlan | null | undefined,
   viability: EconomicViabilityResult,
@@ -81,7 +84,7 @@ export const buildEconomicRecommendation = (
     return {
       ...base, urgency: "decision-required", timeFractionRemaining: Math.max(fraction, 0),
       title: "Decisión requerida",
-      explanation: `Se alcanzó la fecha límite y aún faltan ${viability.missingConfirmedTourists ?? 0} turistas para el mínimo final.`,
+      explanation: `Se alcanzó la fecha límite y aún ${missingTouristsText(viability.missingConfirmedTourists ?? 0)} para el mínimo final.`,
       actionsToEvaluate: ["Evaluar mantener, reprogramar o cancelar la salida con la información disponible."],
     };
   }

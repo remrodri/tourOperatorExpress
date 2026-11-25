@@ -975,10 +975,10 @@ export class AnalyticsService implements IAnalyticsService {
     if (recommendation.urgency === "decision-required") return { ...base, priority: 1, label: "Decisión requerida" };
     if (recommendation.urgency === "priority-action") return { ...base, priority: 2, label: "Revisión prioritaria" };
     if (recommendation.urgency === "commercial-action") return { ...base, priority: 3, label: "Acción comercial recomendada" };
-    if (recommendation.urgency === "monitor") return { ...base, priority: 4, label: viability.missingConfirmedTourists ? `Faltan ${viability.missingConfirmedTourists} turistas` : "Seguimiento recomendado" };
+    if (recommendation.urgency === "monitor") return { ...base, priority: 4, label: viability.missingConfirmedTourists ? (viability.missingConfirmedTourists === 1 ? "Falta 1 turista" : `Faltan ${viability.missingConfirmedTourists} turistas`) : "Seguimiento recomendado" };
     if (capacity !== null && tourists >= capacity) return { ...base, priority: 6, label: "Capacidad completa" };
     if (viability.finalMinimum !== null && tourists >= viability.finalMinimum) return { ...base, priority: 5, label: "Mínimo alcanzado" };
-    if (viability.missingConfirmedTourists !== null && viability.missingConfirmedTourists > 0) return { ...base, priority: 4, label: `Faltan ${viability.missingConfirmedTourists} turistas` };
+    if (viability.missingConfirmedTourists !== null && viability.missingConfirmedTourists > 0) return { ...base, priority: 4, label: viability.missingConfirmedTourists === 1 ? "Falta 1 turista" : `Faltan ${viability.missingConfirmedTourists} turistas` };
     if (tourists === 0) return { ...base, priority: 4, label: "Sin reservas confirmadas" };
     return { ...base, priority: 5, label: "Mínimo alcanzado" };
   }

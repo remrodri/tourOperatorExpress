@@ -29,6 +29,12 @@ describe("T-1206 gradual economic recommendation", () => {
     expect(result.automaticDecision).toBe(false);
     expect(result.actionsToEvaluate.join(" ")).toMatch(/evaluar/i);
   });
+  it("uses correct singular wording when one tourist is missing", () => {
+    const oneMissing = calculateEconomicViability(plan, 20, 7, null);
+    const result = buildEconomicRecommendation(plan, oneMissing, new Date("2026-01-11"));
+    expect(result.explanation).toContain("falta 1 turista");
+    expect(result.explanation).not.toContain("faltan 1 turistas");
+  });
   it("lets achieved demand prevail over time", () => {
     const achieved = calculateEconomicViability(plan, 20, 8, null);
     expect(buildEconomicRecommendation(plan, achieved, new Date("2026-01-12")).urgency).toBe("achieved");
