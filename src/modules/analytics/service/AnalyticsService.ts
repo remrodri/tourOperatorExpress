@@ -432,17 +432,31 @@ export class AnalyticsService implements IAnalyticsService {
     await this.validateFilterReferences(filters);
 
     const cursor = decodeDepartureCursor(filters.cursor);
-    const rows = await this.analyticsRepository.findDepartures(filters, {
-      limit: filters.limit,
-      cursor,
-    });
-    const hasMore = rows.length > filters.limit;
-    const pageRows = hasMore ? rows.slice(0, filters.limit) : rows;
-    const items = pageRows.map((row) => this.toDeparture(row));
-    const lastRow = pageRows[pageRows.length - 1];
+    const rows = filters.order === "attention"
+      ? await this.analyticsRepository.findDeparturesForAttention(filters)
+      : await this.analyticsRepository.findDepartures(filters, {
+        limit: filters.limit,
+        cursor,
+      });
+    const orderedItems = rows.map((row) => this.toDeparture(row));
+    if (filters.order === "attention") {
+      orderedItems.sort((left, right) => this.compareDepartureAttention(left, right));
+    }
+    const cursorIndex = filters.order === "attention" && cursor
+      ? orderedItems.findIndex((item) => item.id === cursor.id.toString())
+      : -1;
+    if (filters.order === "attention" && cursor && cursorIndex < 0) {
+      throw badRequest("Cursor de paginación inválido para el orden solicitado");
+    }
+    const candidateItems = filters.order === "attention"
+      ? orderedItems.slice(cursorIndex + 1, cursorIndex + 1 + filters.limit + 1)
+      : orderedItems;
+    const hasMore = candidateItems.length > filters.limit;
+    const items = hasMore ? candidateItems.slice(0, filters.limit) : candidateItems;
+    const lastRow = items[items.length - 1];
     const nextCursor =
       hasMore && lastRow
-        ? encodeDepartureCursor(lastRow.startDate, lastRow.id)
+        ? encodeDepartureCursor(lastRow.startDate ? new Date(lastRow.startDate) : null, lastRow.id)
         : null;
 
     return {
@@ -879,9 +893,35 @@ export class AnalyticsService implements IAnalyticsService {
     const occupancy =
       capacity === null ? null : round2((tourists / capacity) * 100);
 
+    const viability = calculateEconomicViability(
+      raw.economicPlan,
+      capacity,
+      tourists,
+      null,
+    );
+    const recommendation = buildEconomicRecommendation(
+      raw.economicPlan,
+      viability,
+      new Date(ANALYTICS_ECONOMIC_AS_OF),
+    );
+    const startDate = toIsoDate(raw.startDate);
+    const lifecycle = startDate === null
+      ? "invalid-date" as const
+      : new Date(startDate).getTime() <= new Date(ANALYTICS_ECONOMIC_AS_OF).getTime()
+        ? "historical" as const
+        : "prospective" as const;
+    const attention = this.buildDepartureAttention(
+      lifecycle,
+      capacity,
+      capacityStatus,
+      tourists,
+      viability,
+      recommendation,
+    );
+
     return {
       id: raw.id,
-      startDate: toIsoDate(raw.startDate),
+      startDate,
       endDate: toIsoDate(raw.endDate),
       state: raw.state,
       dataOrigin: raw.dataOrigin,
@@ -907,7 +947,61 @@ export class AnalyticsService implements IAnalyticsService {
       availableSlots,
       occupancy,
       capacityStatus,
+      attention,
     };
+  }
+
+  private buildDepartureAttention(
+    lifecycle: "prospective" | "historical" | "invalid-date",
+    capacity: number | null,
+    capacityStatus: AnalyticsDeparture["capacityStatus"],
+    tourists: number,
+    viability: ReturnType<typeof calculateEconomicViability>,
+    recommendation: ReturnType<typeof buildEconomicRecommendation>,
+  ): AnalyticsDeparture["attention"] {
+    const base = {
+      lifecycle,
+      finalMinimum: viability.finalMinimum,
+      missingTourists: viability.missingConfirmedTourists,
+      urgency: recommendation.urgency,
+      decisionDeadline: recommendation.decisionDeadline,
+    };
+    if (lifecycle === "historical") return { ...base, priority: 7, label: "Salida histórica" };
+    if (lifecycle === "invalid-date") return { ...base, priority: 0, label: "Información temporal incompleta" };
+    if (capacityStatus === "invalid") return { ...base, priority: 0, label: "Falta registrar la capacidad" };
+    if (viability.status === "economic-data-missing") return { ...base, priority: 0, label: "Información económica incompleta" };
+    if (viability.status === "non-positive-contribution") return { ...base, priority: 0, label: "Margen no viable" };
+    if (viability.status === "capacity-insufficient") return { ...base, priority: 0, label: "Capacidad insuficiente para el mínimo" };
+    if (recommendation.urgency === "decision-required") return { ...base, priority: 1, label: "Decisión requerida" };
+    if (recommendation.urgency === "priority-action") return { ...base, priority: 2, label: "Revisión prioritaria" };
+    if (recommendation.urgency === "commercial-action") return { ...base, priority: 3, label: "Acción comercial recomendada" };
+    if (recommendation.urgency === "monitor") return { ...base, priority: 4, label: viability.missingConfirmedTourists ? `Faltan ${viability.missingConfirmedTourists} turistas` : "Seguimiento recomendado" };
+    if (capacity !== null && tourists >= capacity) return { ...base, priority: 6, label: "Capacidad completa" };
+    if (viability.finalMinimum !== null && tourists >= viability.finalMinimum) return { ...base, priority: 5, label: "Mínimo alcanzado" };
+    if (viability.missingConfirmedTourists !== null && viability.missingConfirmedTourists > 0) return { ...base, priority: 4, label: `Faltan ${viability.missingConfirmedTourists} turistas` };
+    if (tourists === 0) return { ...base, priority: 4, label: "Sin reservas confirmadas" };
+    return { ...base, priority: 5, label: "Mínimo alcanzado" };
+  }
+
+  private compareDepartureAttention(
+    left: AnalyticsDeparture,
+    right: AnalyticsDeparture,
+  ): number {
+    if (left.attention.priority !== right.attention.priority) {
+      return left.attention.priority - right.attention.priority;
+    }
+    const leftStart = left.startDate ? new Date(left.startDate).getTime() : Number.POSITIVE_INFINITY;
+    const rightStart = right.startDate ? new Date(right.startDate).getTime() : Number.POSITIVE_INFINITY;
+    if (left.attention.priority === 7 && leftStart !== rightStart) return rightStart - leftStart;
+    const leftDeadline = left.attention.decisionDeadline
+      ? new Date(left.attention.decisionDeadline).getTime()
+      : Number.POSITIVE_INFINITY;
+    const rightDeadline = right.attention.decisionDeadline
+      ? new Date(right.attention.decisionDeadline).getTime()
+      : Number.POSITIVE_INFINITY;
+    if (leftDeadline !== rightDeadline) return leftDeadline - rightDeadline;
+    if (leftStart !== rightStart) return leftStart - rightStart;
+    return left.id.localeCompare(right.id);
   }
 
   private buildSummaryWarnings(summary: AnalyticsSummary): string[] {

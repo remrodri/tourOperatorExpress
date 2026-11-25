@@ -5,6 +5,8 @@ import mongoose from "mongoose";
 import { BookingModel } from "../../modules/booking/model/BookingModel";
 import { TourPackageModel } from "../../modules/tourPackage/model/TourPackageModel";
 import { SIMULATION_DATABASE } from "./simulationConfig";
+import { sha256Hex, stableStringify } from "./simulationRandom";
+import { replaceVisibleSimulationLabel } from "./visibleSimulationLabels";
 
 const args = process.argv.slice(2);
 const apply = args.includes("--apply");
@@ -13,10 +15,19 @@ const getArg = (flag: string): string | undefined => {
   return index >= 0 ? args[index + 1] : undefined;
 };
 
-const replaceVisibleLabel = (value: string): string =>
-  value
-    .replace(/Reserva simulada/gi, "Reserva registrada mediante canal web")
-    .replace(/Actividad simulada/gi, "Actividad programada");
+const protectedPackageHash = (packages: Record<string, unknown>[]): string => sha256Hex(stableStringify(
+  packages.map((tourPackage) => ({
+    _id: String(tourPackage._id),
+    tourType: String(tourPackage.tourType ?? ""),
+    touristDestination: String(tourPackage.touristDestination ?? ""),
+    dateRanges: (tourPackage.dateRanges as unknown[] | undefined)?.map(String) ?? [],
+    dataOrigin: tourPackage.dataOrigin,
+    simulationId: tourPackage.simulationId,
+    simulationVersion: tourPackage.simulationVersion,
+    simulationSeed: tourPackage.simulationSeed,
+    simulationKey: tourPackage.simulationKey,
+  })).sort((left, right) => left._id.localeCompare(right._id)),
+));
 
 const run = async (): Promise<void> => {
   const mongoUri = process.env.MONGO_URI;
@@ -31,29 +42,40 @@ const run = async (): Promise<void> => {
     notes: /simulad/i,
   }).select("_id notes").lean().exec();
   const packages = await TourPackageModel.find({ dataOrigin: "simulated" })
-    .select("_id itinerary")
+    .select("_id name itinerary tourType touristDestination dateRanges dataOrigin simulationId simulationVersion simulationSeed simulationKey")
     .lean()
     .exec();
   const packageChanges = packages.flatMap((tourPackage) => {
     const original = tourPackage.itinerary;
     const changed = JSON.parse(JSON.stringify(original)) as typeof original;
+    const originalName = tourPackage.name ?? "";
+    const changedName = replaceVisibleSimulationLabel(originalName);
     let replacements = 0;
     changed?.days?.forEach((day) => day.activities?.forEach((activity) => {
-      const next = replaceVisibleLabel(activity.description ?? "");
+      const next = replaceVisibleSimulationLabel(activity.description ?? "");
       if (next !== activity.description) {
         activity.description = next;
         replacements += 1;
       }
     }));
-    return replacements > 0
-      ? [{ id: tourPackage._id.toString(), before: original, after: changed, replacements }]
+    return replacements > 0 || changedName !== originalName
+      ? [{
+        id: tourPackage._id.toString(),
+        nameBefore: originalName,
+        nameAfter: changedName,
+        itineraryBefore: original,
+        itineraryAfter: changed,
+        replacements,
+      }]
       : [];
   });
+  const beforeHash = protectedPackageHash(packages as unknown as Record<string, unknown>[]);
 
   console.log(JSON.stringify({
     mode: apply ? "apply" : "dry-run",
     bookingChanges: bookings.length,
     packageChanges: packageChanges.length,
+    packageNameChanges: packageChanges.filter((item) => item.nameBefore !== item.nameAfter).length,
     activityChanges: packageChanges.reduce((sum, item) => sum + item.replacements, 0),
   }, null, 2));
   if (!apply || (bookings.length === 0 && packageChanges.length === 0)) return;
@@ -71,7 +93,7 @@ const run = async (): Promise<void> => {
     await BookingModel.bulkWrite(bookings.map((booking) => ({
       updateOne: {
         filter: { _id: booking._id, dataOrigin: "simulated" },
-        update: { $set: { notes: replaceVisibleLabel(booking.notes ?? "") } },
+        update: { $set: { notes: replaceVisibleSimulationLabel(booking.notes ?? "") } },
       },
     })));
   }
@@ -79,7 +101,7 @@ const run = async (): Promise<void> => {
     await TourPackageModel.bulkWrite(packageChanges.map((tourPackage) => ({
       updateOne: {
         filter: { _id: new mongoose.Types.ObjectId(tourPackage.id), dataOrigin: "simulated" },
-        update: { $set: { itinerary: tourPackage.after } },
+        update: { $set: { name: tourPackage.nameAfter, itinerary: tourPackage.itineraryAfter } },
       },
     })));
   }
@@ -90,15 +112,26 @@ const run = async (): Promise<void> => {
   });
   const remainingPackages = await TourPackageModel.countDocuments({
     dataOrigin: "simulated",
-    "itinerary.days.activities.description": /simulad/i,
+    $or: [
+      { name: /simulad/i },
+      { "itinerary.days.activities.description": /simulad/i },
+    ],
   });
+  const packagesAfter = await TourPackageModel.find({ dataOrigin: "simulated" })
+    .select("_id tourType touristDestination dateRanges dataOrigin simulationId simulationVersion simulationSeed simulationKey")
+    .lean()
+    .exec();
+  const afterHash = protectedPackageHash(packagesAfter as unknown as Record<string, unknown>[]);
   console.log(JSON.stringify({
     mode: "verification",
     backupPath,
     remainingBookings,
     remainingPackages,
+    protectedRelationsBeforeHash: beforeHash,
+    protectedRelationsAfterHash: afterHash,
+    relationsPreserved: beforeHash === afterHash,
   }, null, 2));
-  if (remainingBookings !== 0 || remainingPackages !== 0) {
+  if (remainingBookings !== 0 || remainingPackages !== 0 || beforeHash !== afterHash) {
     throw new Error("Persisten marcas visibles de simulación");
   }
 };

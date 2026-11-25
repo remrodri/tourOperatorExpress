@@ -12,6 +12,7 @@ import {
   stableStringify,
 } from "./simulationRandom";
 import { buildRealisticTouristIdentity } from "./touristIdentityProfile";
+import { buildRealisticPackageName } from "./visibleSimulationLabels";
 
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -1017,7 +1018,7 @@ export const buildSimulationDataset = (
 
     tourPackages.push({
       _id: packageId,
-      name: `Paquete simulado ${profile.code}`,
+      name: buildRealisticPackageName(profile.code),
       tourType: tourType.id,
       touristDestination: destination.id,
       duration: profile.durationDays,

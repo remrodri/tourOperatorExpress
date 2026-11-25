@@ -79,6 +79,9 @@ export interface IAnalyticsRepository {
     filters: AnalyticsFilters,
     options: AnalyticsDepartureQueryOptions,
   ): Promise<AnalyticsDepartureRaw[]>;
+  findDeparturesForAttention(
+    filters: AnalyticsFilters,
+  ): Promise<AnalyticsDepartureRaw[]>;
   findDepartureById(
     id: string,
     filters: AnalyticsFilters,

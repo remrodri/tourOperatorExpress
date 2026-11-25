@@ -138,6 +138,15 @@ export interface AnalyticsDeparture {
   availableSlots: number | null;
   occupancy: number | null;
   capacityStatus: AnalyticsCapacityStatus;
+  attention: {
+    priority: number;
+    lifecycle: "prospective" | "historical" | "invalid-date";
+    label: string;
+    finalMinimum: number | null;
+    missingTourists: number | null;
+    urgency: import("../domain/economicRecommendation").EconomicUrgency;
+    decisionDeadline: string | null;
+  };
 }
 
 export interface AnalyticsSummary {

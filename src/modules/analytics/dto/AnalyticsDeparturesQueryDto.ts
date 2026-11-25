@@ -16,6 +16,7 @@ export const AnalyticsDeparturesQuerySchema = z
     ...analyticsCommonFilterShape,
     limit: z.coerce.number().int().min(1).max(100).default(20),
     cursor: optionalCursor,
+    order: z.enum(["attention", "chronological"]).default("chronological"),
   })
   .strict()
   .superRefine(refineAnalyticsFilters)

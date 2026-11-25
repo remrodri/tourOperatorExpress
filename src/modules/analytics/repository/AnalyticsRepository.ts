@@ -225,6 +225,15 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     return DateRangeModel.aggregate<AnalyticsDepartureRaw>(pipeline);
   }
 
+  async findDeparturesForAttention(
+    filters: AnalyticsFilters,
+  ): Promise<AnalyticsDepartureRaw[]> {
+    const match = await this.buildBaseMatch(filters);
+    const pipeline = this.buildMetricsPipeline(match, true);
+    pipeline.push({ $sort: { _id: 1 } });
+    return DateRangeModel.aggregate<AnalyticsDepartureRaw>(pipeline);
+  }
+
   async findDepartureById(
     id: string,
     filters: AnalyticsFilters,
